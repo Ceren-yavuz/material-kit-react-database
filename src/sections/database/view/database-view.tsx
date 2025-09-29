@@ -1,5 +1,6 @@
 import type { MongoDatabase } from 'src/types/mongotypes';
 
+import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -24,6 +25,7 @@ import { DatabaseTableHead } from '../database-table-head';
 // ----------------------------------------------------------------------
 
 export function DatabaseView() {
+  const navigate = useNavigate();
   const table = useTable();
   const [databases, setDatabases] = useState<MongoDatabase[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,6 +100,7 @@ export function DatabaseView() {
           variant="contained"
           color="inherit"
           startIcon={<Iconify icon="mingcute:add-line" />}
+          onClick={() => navigate('/database/create')}
         >
           New Database
         </Button>

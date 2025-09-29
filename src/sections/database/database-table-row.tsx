@@ -53,7 +53,7 @@ export function DatabaseTableRow({ row, selected, onSelectRow }: DatabaseTableRo
 
         <TableCell>
           <Label color={mongoService.getStatusColor(row.status)}>
-            {mongoService.getStatusText(row.status)}
+            {row.status}
           </Label>
         </TableCell>
 

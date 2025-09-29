@@ -212,30 +212,9 @@ class MongoService {
     }
   }
 
-  // Utility method to format status text for UI
+  // Utility method to format status text for UI - returns original status
   getStatusText(status: ProvisionStatus): string {
-    switch (status) {
-      case ProvisionStatus.SUCCEEDED:
-        return 'Başarılı';
-      case ProvisionStatus.COMPLETED:
-        return 'Tamamlandı';
-      case ProvisionStatus.FAILED:
-        return 'Başarısız';
-      case ProvisionStatus.PROVISIONING:
-        return 'Hazırlanıyor';
-      case ProvisionStatus.IN_PROGRESS:
-        return 'Devam Ediyor';
-      case ProvisionStatus.DELETING:
-        return 'Siliniyor';
-      case ProvisionStatus.TERMINATING:
-        return 'Sonlandırılıyor';
-      case ProvisionStatus.TERMINATING_FAILED:
-        return 'Sonlandırma Başarısız';
-      case ProvisionStatus.CLONNED:
-        return 'Klonlandı';
-      default:
-        return status;
-    }
+    return status; // Return original status as is
   }
 }
 

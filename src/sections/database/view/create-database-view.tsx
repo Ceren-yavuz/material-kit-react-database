@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -10,7 +12,9 @@ import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import CardContent from '@mui/material/CardContent';
+import CircularProgress from '@mui/material/CircularProgress';
 
+import mongoService from 'src/services/mongoService';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
@@ -18,13 +22,54 @@ import { Iconify } from 'src/components/iconify';
 // ----------------------------------------------------------------------
 
 export function CreateDatabaseView() {
-  const [databaseName, setDatabaseName] = useState('');
-  const [databaseType, setDatabaseType] = useState('');
+  const navigate = useNavigate();
+  
+  // MongoDB API parameters
+  const [mongoEdition, setMongoEdition] = useState('');
+  const [mongoVersion, setMongoVersion] = useState('');
+  const [password, setPassword] = useState('');
+  const [remoteUser, setRemoteUser] = useState('');
+  const [remoteIp, setRemoteIp] = useState('');
+  
+  // UI state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    // Handle database creation logic here
-    console.log('Creating database:', { databaseName, databaseType });
+    
+    if (!mongoEdition || !mongoVersion || !password || !remoteUser || !remoteIp) {
+      setError('Lütfen tüm alanları doldurun');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const result = await mongoService.createMongoOperation({
+        mongoEdition,
+        mongoVersion,
+        password,
+        remoteUser,
+        remoteIp,
+      });
+      
+      console.log('MongoDB operation created:', result);
+      setSuccess(true);
+      
+      // Redirect to database list after 2 seconds
+      setTimeout(() => {
+        navigate('/database');
+      }, 2000);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'MongoDB oluşturulurken bir hata oluştu');
+      console.error('Error creating MongoDB:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -41,37 +86,80 @@ export function CreateDatabaseView() {
         </Typography>
       </Box>
 
-      <Card sx={{ maxWidth: 600, mx: 'auto' }}>
+      {success && (
+        <Alert severity="success" sx={{ mb: 3 }}>
+          MongoDB başarıyla oluşturuldu! Veritabanı listesine yönlendiriliyorsunuz...
+        </Alert>
+      )}
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      <Card >
         <CardContent sx={{ p: 4 }}>
           <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <TextField
-              label="Database Name"
-              value={databaseName}
-              onChange={(e) => setDatabaseName(e.target.value)}
-              required
-              fullWidth
-              placeholder="Enter database name"
-            />
+            
+            <FormControl fullWidth required>
+              <InputLabel>MongoDB Edition</InputLabel>
+              <Select
+                value={mongoEdition}
+                onChange={(e) => setMongoEdition(e.target.value)}
+                label="MongoDB Edition"
+                disabled={loading}
+              >
+                <MenuItem value="community">Community</MenuItem>
+                <MenuItem value="enterprise">Enterprise</MenuItem>
+              </Select>
+            </FormControl>
 
             <FormControl fullWidth required>
-              <InputLabel>Database Type</InputLabel>
+              <InputLabel>MongoDB Version</InputLabel>
               <Select
-                value={databaseType}
-                onChange={(e) => setDatabaseType(e.target.value)}
-                label="Database Type"
+                value={mongoVersion}
+                onChange={(e) => setMongoVersion(e.target.value)}
+                label="MongoDB Version"
+                disabled={loading}
               >
-                <MenuItem value="MySQL">MySQL</MenuItem>
-                <MenuItem value="PostgreSQL">PostgreSQL</MenuItem>
-                <MenuItem value="MongoDB">MongoDB</MenuItem>
+                <MenuItem value="8.0">8.0</MenuItem>
+                <MenuItem value="7.0">7.0</MenuItem>
               </Select>
             </FormControl>
 
             <TextField
-              label="Description"
-              multiline
-              rows={4}
-              placeholder="Enter database description (optional)"
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
               fullWidth
+              placeholder="SSH key path or password"
+              disabled={loading}
+              helperText="SSH key path for MongoDB installation"
+            />
+
+            <TextField
+              label="Remote User"
+              value={remoteUser}
+              onChange={(e) => setRemoteUser(e.target.value)}
+              required
+              fullWidth
+              placeholder="e.g., ubuntu, root"
+              disabled={loading}
+              helperText="Remote user for MongoDB installation"
+            />
+
+            <TextField
+              label="Remote IP"
+              value={remoteIp}
+              onChange={(e) => setRemoteIp(e.target.value)}
+              required
+              fullWidth
+              placeholder="e.g., 192.168.1.100"
+              disabled={loading}
+              helperText="Remote IP address for MongoDB installation"
             />
 
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
@@ -79,6 +167,8 @@ export function CreateDatabaseView() {
                 variant="outlined"
                 color="inherit"
                 startIcon={<Iconify icon="eva:arrow-ios-upward-fill" />}
+                onClick={() => navigate('/database')}
+                disabled={loading}
               >
                 Cancel
               </Button>
@@ -86,9 +176,10 @@ export function CreateDatabaseView() {
                 type="submit"
                 variant="contained"
                 color="primary"
-                startIcon={<Iconify icon="mingcute:add-line" />}
+                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <Iconify icon="mingcute:add-line" />}
+                disabled={loading}
               >
-                Create Database
+                {loading ? 'Creating...' : 'Create MongoDB'}
               </Button>
             </Box>
           </Box>
