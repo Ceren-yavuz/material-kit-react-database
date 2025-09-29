@@ -7,7 +7,6 @@ import { varAlpha } from 'minimal-shared/utils';
 import Box from '@mui/material/Box';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 
-import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
 
 // ----------------------------------------------------------------------
@@ -17,6 +16,8 @@ export const BlogPage = lazy(() => import('src/pages/blog'));
 export const UserPage = lazy(() => import('src/pages/user'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
 export const ProductsPage = lazy(() => import('src/pages/products'));
+export const DatabasePage = lazy(() => import('src/pages/database'));
+export const DatabaseCreatePage = lazy(() => import('src/pages/database-create'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
 const renderFallback = () => (
@@ -50,19 +51,11 @@ export const routesSection: RouteObject[] = [
     ),
     children: [
       { index: true, element: <DashboardPage /> },
-      { path: 'user', element: <UserPage /> },
-      { path: 'products', element: <ProductsPage /> },
-      { path: 'blog', element: <BlogPage /> },
+      { path: 'database', element: <DatabasePage /> },
+      { path: 'database/create', element: <DatabaseCreatePage /> },
     ],
   },
-  {
-    path: 'sign-in',
-    element: (
-      <AuthLayout>
-        <SignInPage />
-      </AuthLayout>
-    ),
-  },
+  
   {
     path: '404',
     element: <Page404 />,

@@ -1,10 +1,11 @@
 import type { Theme, SxProps, Breakpoint } from '@mui/material/styles';
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
 import ListItem from '@mui/material/ListItem';
+import Collapse from '@mui/material/Collapse';
 import { useTheme } from '@mui/material/styles';
 import ListItemButton from '@mui/material/ListItemButton';
 import Drawer, { drawerClasses } from '@mui/material/Drawer';
@@ -13,6 +14,7 @@ import { usePathname } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
 import { Logo } from 'src/components/logo';
+import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
 import { NavUpgrade } from '../components/nav-upgrade';
@@ -109,6 +111,80 @@ export function NavMobile({
 
 export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
   const pathname = usePathname();
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
+
+  const handleToggle = (title: string) => {
+    setOpenItems(prev => ({
+      ...prev,
+      [title]: !prev[title]
+    }));
+  };
+
+  const renderNavItem = (item: NavItem, level = 0) => {
+    const hasChildren = item.children && item.children.length > 0;
+    const isOpen = openItems[item.title];
+    const isActived = !hasChildren && item.path === pathname;
+    const hasActiveChild = hasChildren && item.children?.some(child => child.path === pathname);
+
+    return (
+      <Box key={item.title}>
+        <ListItem disableGutters disablePadding>
+          <ListItemButton
+            disableGutters
+            component={hasChildren ? 'div' : RouterLink}
+            href={hasChildren ? undefined : item.path}
+            onClick={hasChildren ? () => handleToggle(item.title) : undefined}
+            sx={[
+              (theme) => ({
+                pl: 2 + (level * 1.5),
+                py: 1,
+                gap: 2,
+                pr: 1.5,
+                borderRadius: 0.75,
+                typography: 'body2',
+                fontWeight: 'fontWeightMedium',
+                color: theme.vars.palette.text.secondary,
+                minHeight: 44,
+                ...((isActived || hasActiveChild) && {
+                  fontWeight: 'fontWeightSemiBold',
+                  color: theme.vars.palette.primary.main,
+                  bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.08),
+                  '&:hover': {
+                    bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.16),
+                  },
+                }),
+              }),
+            ]}
+          >
+            <Box component="span" sx={{ width: 24, height: 24 }}>
+              {item.icon}
+            </Box>
+
+            <Box component="span" sx={{ flexGrow: 1 }}>
+              {item.title}
+            </Box>
+
+            {item.info && item.info}
+            
+            {hasChildren && (
+              <Iconify
+                icon={isOpen ? 'eva:arrow-ios-upward-fill' : 'eva:arrow-ios-downward-fill'}
+                width={16}
+              />
+            )}
+          </ListItemButton>
+        </ListItem>
+
+        {hasChildren && (
+          <Collapse in={isOpen} timeout="auto" unmountOnExit>
+            <Box component="ul" sx={{ pl: 0 }}>
+              {item.children?.map((child) => renderNavItem(child, level + 1))}
+            </Box>
+          </Collapse>
+        )}
+      </Box>
+    );
+  };
 
   return (
     <>
@@ -138,50 +214,7 @@ export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
               flexDirection: 'column',
             }}
           >
-            {data.map((item) => {
-              const isActived = item.path === pathname;
-
-              return (
-                <ListItem disableGutters disablePadding key={item.title}>
-                  <ListItemButton
-                    disableGutters
-                    component={RouterLink}
-                    href={item.path}
-                    sx={[
-                      (theme) => ({
-                        pl: 2,
-                        py: 1,
-                        gap: 2,
-                        pr: 1.5,
-                        borderRadius: 0.75,
-                        typography: 'body2',
-                        fontWeight: 'fontWeightMedium',
-                        color: theme.vars.palette.text.secondary,
-                        minHeight: 44,
-                        ...(isActived && {
-                          fontWeight: 'fontWeightSemiBold',
-                          color: theme.vars.palette.primary.main,
-                          bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.08),
-                          '&:hover': {
-                            bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.16),
-                          },
-                        }),
-                      }),
-                    ]}
-                  >
-                    <Box component="span" sx={{ width: 24, height: 24 }}>
-                      {item.icon}
-                    </Box>
-
-                    <Box component="span" sx={{ flexGrow: 1 }}>
-                      {item.title}
-                    </Box>
-
-                    {item.info && item.info}
-                  </ListItemButton>
-                </ListItem>
-              );
-            })}
+            {data.map((item) => renderNavItem(item))}
           </Box>
         </Box>
       </Scrollbar>
