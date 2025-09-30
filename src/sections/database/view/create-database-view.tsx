@@ -24,6 +24,9 @@ import { Iconify } from 'src/components/iconify';
 export function CreateDatabaseView() {
   const navigate = useNavigate();
   
+  // Database type selection
+  const [selectedDatabaseType, setSelectedDatabaseType] = useState('');
+  
   // MongoDB API parameters
   const [mongoEdition, setMongoEdition] = useState('');
   const [mongoVersion, setMongoVersion] = useState('');
@@ -36,8 +39,25 @@ export function CreateDatabaseView() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  const handleDatabaseTypeChange = (type: string) => {
+    setSelectedDatabaseType(type);
+    // Reset form fields when changing database type
+    setMongoEdition('');
+    setMongoVersion('');
+    setPassword('');
+    setRemoteUser('');
+    setRemoteIp('');
+    setError(null);
+    setSuccess(false);
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    
+    if (selectedDatabaseType !== 'mongodb') {
+      setError('Şu anda sadece MongoDB desteklenmektedir');
+      return;
+    }
     
     if (!mongoEdition || !mongoVersion || !password || !remoteUser || !remoteIp) {
       setError('Lütfen tüm alanları doldurun');
@@ -98,22 +118,60 @@ export function CreateDatabaseView() {
         </Alert>
       )}
 
-      <Card >
+      <Card>
         <CardContent sx={{ p: 4 }}>
-          <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            
-            <FormControl fullWidth required>
-              <InputLabel>MongoDB Edition</InputLabel>
-              <Select
-                value={mongoEdition}
-                onChange={(e) => setMongoEdition(e.target.value)}
-                label="MongoDB Edition"
+          {/* Database Type Selection */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Database Type
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Button
+                variant={selectedDatabaseType === 'mongodb' ? 'contained' : 'outlined'}
+                onClick={() => handleDatabaseTypeChange('mongodb')}
                 disabled={loading}
+                sx={{ minWidth: 140 }}
               >
-                <MenuItem value="community">Community</MenuItem>
-                <MenuItem value="enterprise">Enterprise</MenuItem>
-              </Select>
-            </FormControl>
+                MongoDB
+              </Button>
+              <Button
+                variant={selectedDatabaseType === 'mysql' ? 'contained' : 'outlined'}
+                onClick={() => handleDatabaseTypeChange('mysql')}
+                disabled={loading}
+                sx={{ minWidth: 140 }}
+              >
+                MySQL
+              </Button>
+              <Button
+                variant={selectedDatabaseType === 'postgresql' ? 'contained' : 'outlined'}
+                onClick={() => handleDatabaseTypeChange('postgresql')}
+                disabled={loading}
+                sx={{ minWidth: 140 }}
+              >
+                PostgreSQL
+              </Button>
+            </Box>
+          </Box>
+
+          {/* MongoDB Configuration Form */}
+          {selectedDatabaseType === 'mongodb' && (
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Typography variant="h6" sx={{ mb: 1 }}>
+                MongoDB Configuration
+              </Typography>
+              
+              <FormControl fullWidth required>
+                <InputLabel>MongoDB Edition</InputLabel>
+                <Select
+                  value={mongoEdition}
+                  onChange={(e) => setMongoEdition(e.target.value)}
+                  label="MongoDB Edition"
+                  disabled={loading}
+                >
+                  <MenuItem value="community">Community</MenuItem>
+                  <MenuItem value="enterprise">Enterprise</MenuItem>
+                </Select>
+              </FormControl>
 
             <FormControl fullWidth required>
               <InputLabel>MongoDB Version</InputLabel>
@@ -182,7 +240,20 @@ export function CreateDatabaseView() {
                 {loading ? 'Creating...' : 'Create MongoDB'}
               </Button>
             </Box>
-          </Box>
+            </Box>
+          )}
+
+          {/* Coming Soon for other database types */}
+          {selectedDatabaseType && selectedDatabaseType !== 'mongodb' && (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="h6" color="text.secondary">
+                {selectedDatabaseType.toUpperCase()} support coming soon!
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                Currently only MongoDB is supported.
+              </Typography>
+            </Box>
+          )}
         </CardContent>
       </Card>
     </DashboardContent>
