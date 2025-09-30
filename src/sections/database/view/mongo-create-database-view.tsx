@@ -21,7 +21,7 @@ import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-export function CreateDatabaseView() {
+export function CreateMongoDatabaseView() {
   const navigate = useNavigate();
   
   // Database type selection

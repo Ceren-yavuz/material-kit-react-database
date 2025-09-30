@@ -24,7 +24,7 @@ import { DatabaseTableHead } from '../database-table-head';
 
 // ----------------------------------------------------------------------
 
-export function DatabaseView() {
+export function MongoDatabaseView() {
   const navigate = useNavigate();
   const table = useTable();
   const [databases, setDatabases] = useState<MongoDatabase[]>([]);

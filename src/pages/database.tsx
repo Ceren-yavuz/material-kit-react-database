@@ -1,7 +1,7 @@
 // src/pages/database.tsx
 import { CONFIG } from 'src/config-global';
 
-import { DatabaseView } from 'src/sections/database/view/database-view';
+import { DatabaseView } from 'src/sections/database/database-view';
 
 // ----------------------------------------------------------------------
 
