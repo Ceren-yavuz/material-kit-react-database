@@ -20,18 +20,16 @@ import { Iconify } from 'src/components/iconify';
 // ----------------------------------------------------------------------
 
 interface CreateMysqlDatabaseViewProps {
-  onSuccess?: () => void;
-  onCancel?: () => void;
 }
 
-export function CreateMysqlDatabaseView({ onSuccess, onCancel }: CreateMysqlDatabaseViewProps) {
+export function CreateMysqlDatabaseView() {
   // MySQL API parameters
   const [mysqlEdition, setMysqlEdition] = useState('');
   const [mysqlVersion, setMysqlVersion] = useState('');
   const [password, setPassword] = useState('');
   const [remoteUser, setRemoteUser] = useState('');
   const [remoteIp, setRemoteIp] = useState('');
-  
+
   // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,16 +37,13 @@ export function CreateMysqlDatabaseView({ onSuccess, onCancel }: CreateMysqlData
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    
     if (!mysqlEdition || !mysqlVersion || !password || !remoteUser || !remoteIp) {
       setError('Lütfen tüm alanları doldurun');
       return;
     }
-    
     try {
       setLoading(true);
       setError(null);
-      
       const result = await mysqlService.createMysqlOperation({
         mysqlEdition,
         mysqlVersion,
@@ -56,17 +51,11 @@ export function CreateMysqlDatabaseView({ onSuccess, onCancel }: CreateMysqlData
         remoteUser,
         remoteIp,
       });
-      
       console.log('MySQL operation created:', result);
       setSuccess(true);
-      
-      // Call onSuccess callback if provided
-      if (onSuccess) {
-        setTimeout(() => {
-          onSuccess();
-        }, 2000);
-      }
-      
+      setTimeout(() => {
+        window.location.href = '/database?type=mysql';
+      }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'MySQL oluşturulurken bir hata oluştu');
       console.error('Error creating MySQL:', err);
@@ -87,10 +76,6 @@ export function CreateMysqlDatabaseView({ onSuccess, onCancel }: CreateMysqlData
 
   return (
     <>
-      <Typography variant="h5" sx={{ mb: 3 }}>
-        Create MySQL Database
-      </Typography>
-
       {success && (
         <Alert severity="success" sx={{ mb: 3 }}>
           MySQL başarıyla oluşturuldu!
@@ -106,7 +91,9 @@ export function CreateMysqlDatabaseView({ onSuccess, onCancel }: CreateMysqlData
       <Card>
         <CardContent sx={{ p: 4 }}>
           <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              MySQL Configuration
+            </Typography>
             <FormControl fullWidth required>
               <InputLabel>MySQL Edition</InputLabel>
               <Select
@@ -128,8 +115,9 @@ export function CreateMysqlDatabaseView({ onSuccess, onCancel }: CreateMysqlData
                 label="MySQL Version"
                 disabled={loading}
               >
-                <MenuItem value="8.0">8.0</MenuItem>
-                <MenuItem value="5.7">5.7</MenuItem>
+                <MenuItem value="9.4.0">9.4.0</MenuItem>
+                <MenuItem value="8.0.43">8.0.43</MenuItem>
+                <MenuItem value="8.4.6">8.4.6</MenuItem>
               </Select>
             </FormControl>
 
@@ -140,9 +128,9 @@ export function CreateMysqlDatabaseView({ onSuccess, onCancel }: CreateMysqlData
               onChange={(e) => setPassword(e.target.value)}
               required
               fullWidth
-              placeholder="SSH key path or password"
+              placeholder="SSH password"
               disabled={loading}
-              helperText="SSH key path for MySQL installation"
+              helperText="SSH password for MySQL installation"
             />
 
             <TextField
@@ -172,10 +160,10 @@ export function CreateMysqlDatabaseView({ onSuccess, onCancel }: CreateMysqlData
                 variant="outlined"
                 color="inherit"
                 startIcon={<Iconify icon="eva:arrow-ios-upward-fill" />}
-                onClick={onCancel || handleReset}
+                onClick={handleReset}
                 disabled={loading}
               >
-                {onCancel ? 'Cancel' : 'Reset'}
+                Reset
               </Button>
               <Button
                 type="submit"

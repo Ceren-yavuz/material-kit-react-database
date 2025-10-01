@@ -3,6 +3,7 @@ import type { SelectChangeEvent } from '@mui/material/Select';
 import { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Select from '@mui/material/Select';
@@ -19,7 +20,7 @@ import { CreateMysqlDatabaseView } from './view/mysql-create-database-view';
 
 // ----------------------------------------------------------------------
 
-type DatabaseType = 'mongodb' | 'mysql' | '';
+type DatabaseType = 'mongodb' | 'mysql' | 'postgresql' | '';
 
 export function CreateDatabaseView() {
   const [selectedDatabase, setSelectedDatabase] = useState<DatabaseType>('');
@@ -36,35 +37,53 @@ export function CreateDatabaseView() {
 
       <Card>
         <CardContent>
-          <Stack spacing={3}>
-            <Typography variant="h6">
-              Veritabanı Türü Seçin
+          <Box sx={{ mb: 5, display: 'flex', alignItems: 'center' }}>
+            <Typography variant="h4" sx={{ flexGrow: 1 }}>
+              Create New Database
             </Typography>
-            
-            <FormControl fullWidth>
-              <InputLabel id="database-type-label">Veritabanı Türü</InputLabel>
-              <Select
-                labelId="database-type-label"
-                id="database-type-select"
-                value={selectedDatabase}
-                label="Veritabanı Türü"
-                onChange={handleDatabaseChange}
+          </Box>
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Database Type
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Button
+                variant={selectedDatabase === 'mongodb' ? 'contained' : 'outlined'}
+                onClick={() => setSelectedDatabase('mongodb')}
+                sx={{ minWidth: 140 }}
               >
-                <MenuItem value="mongodb">MongoDB</MenuItem>
-                <MenuItem value="mysql">MySQL</MenuItem>
-              </Select>
-            </FormControl>
-
-            {selectedDatabase && (
-              <>
-                <Divider />
-                <Box sx={{ mt: 3 }}>
-                  {selectedDatabase === 'mongodb' && <CreateMongoDatabaseView />}
-                  {selectedDatabase === 'mysql' && <CreateMysqlDatabaseView />}
-                </Box>
-              </>
-            )}
-          </Stack>
+                MongoDB
+              </Button>
+              <Button
+                variant={selectedDatabase === 'mysql' ? 'contained' : 'outlined'}
+                onClick={() => setSelectedDatabase('mysql')}
+                sx={{ minWidth: 140 }}
+              >
+                MySQL
+              </Button>
+              <Button
+                variant={selectedDatabase === 'postgresql' ? 'contained' : 'outlined'}
+                onClick={() => setSelectedDatabase('postgresql')}
+                sx={{ minWidth: 140 }}
+              >
+                PostgreSQL
+              </Button>
+            </Box>
+          </Box>
+          {selectedDatabase && (
+            <>
+              <Divider />
+              <Box sx={{ mt: 3 }}>
+                {selectedDatabase === 'mongodb' && <CreateMongoDatabaseView />}
+                {selectedDatabase === 'mysql' && <CreateMysqlDatabaseView />}
+                {selectedDatabase === 'postgresql' && (
+                  <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+                    PostgreSQL desteği yakında eklenecek!
+                  </Typography>
+                )}
+              </Box>
+            </>
+          )}
         </CardContent>
       </Card>
     </Container>

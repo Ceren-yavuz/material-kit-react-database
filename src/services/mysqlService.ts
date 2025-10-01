@@ -3,7 +3,7 @@ import { MysqlProvisionStatus } from '../types/mysqltypes';
 
 import type { MysqlDatabase } from '../types/mysqltypes';
 
-const MYSQL_SERVICE_ENDPOINT = 'http://localhost:3001/graphql'; // MySQL Backend GraphQL endpoint'i
+const MYSQL_SERVICE_ENDPOINT = 'http://localhost:3000/graphql'; // MySQL Backend GraphQL endpoint'i
 
 interface GraphQLResponse<T> {
   data: T;

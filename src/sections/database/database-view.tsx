@@ -1,4 +1,6 @@
 import { useState, useCallback } from 'react';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -42,7 +44,16 @@ function a11yProps(index: number) {
 // ----------------------------------------------------------------------
 
 export function DatabaseView() {
+  const location = useLocation();
   const [value, setValue] = useState(0);
+
+  // Change tab based on ?type=mysql or ?type=mongodb
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const type = params.get('type');
+    if (type === 'mysql') setValue(1);
+    else if (type === 'mongodb') setValue(0);
+  }, [location.search]);
 
   const handleChange = useCallback((event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
