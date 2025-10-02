@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { useCallback, useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography';
 
 import { MongoDatabaseView } from './view/mongo-database-view';
 import { MysqlDatabaseView } from './view/mysql-database-view';
+import { PostgreDatabaseView } from './view/postgre-database-view';
 
 // ----------------------------------------------------------------------
 
@@ -55,11 +56,12 @@ export function DatabaseView() {
     return '';
   });
 
-  // Change tab based on ?type=mysql or ?type=mongodb
+  // Change tab based on ?type=mysql or ?type=mongodb or ?type=postgresql
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const type = params.get('type');
     if (type === 'mysql') setValue(1);
+    else if (type === 'postgresql') setValue(2);
     else if (type === 'mongodb') setValue(0);
   }, [location.search]);
 
@@ -78,6 +80,7 @@ export function DatabaseView() {
           <Tabs value={value} onChange={handleChange} aria-label="veritabanı türleri">
             <Tab label="MongoDB" {...a11yProps(0)} />
             <Tab label="MySQL" {...a11yProps(1)} />
+            <Tab label="PostgreSQL" {...a11yProps(2)} />
           </Tabs>
         </Box>
 
@@ -87,6 +90,10 @@ export function DatabaseView() {
 
         <TabPanel value={value} index={1}>
           <MysqlDatabaseView onCreateNew={() => console.log('Create MySQL DB')} />
+        </TabPanel>
+
+        <TabPanel value={value} index={2}>
+          <PostgreDatabaseView />
         </TabPanel>
       </Card>
     </Container>

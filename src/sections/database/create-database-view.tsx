@@ -1,23 +1,19 @@
 import type { SelectChangeEvent } from '@mui/material/Select';
 
-import { useLocation } from 'react-router-dom';
-import { useCallback, useEffect, useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams, useLocation } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
-import Select from '@mui/material/Select';
 import Divider from '@mui/material/Divider';
-import MenuItem from '@mui/material/MenuItem';
 import Container from '@mui/material/Container';
-import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
-import FormControl from '@mui/material/FormControl';
 
 import { CreateMongoDatabaseView } from './view/mongo-create-database-view';
 import { CreateMysqlDatabaseView } from './view/mysql-create-database-view';
+import { CreatePostgreDatabaseView } from './view/postgre-create-database-view';
 
 // ----------------------------------------------------------------------
 
@@ -25,16 +21,16 @@ type DatabaseType = 'mongodb' | 'mysql' | 'postgresql' | '';
 
 export function CreateDatabaseView() {
   const location = useLocation();
-  const [selectedDatabase, setSelectedDatabase] = useState<DatabaseType>(() => {
-    // If navigation state is set, use it for default selection
-    if (location.state && location.state.defaultType === 'mysql') {
-      return 'mysql';
+  const [searchParams] = useSearchParams();
+  const [selectedDatabase, setSelectedDatabase] = useState<DatabaseType>('');
+
+  // URL'den type parametresini al
+  useEffect(() => {
+    const type = searchParams.get('type');
+    if (type && (type === 'mongodb' || type === 'mysql' || type === 'postgresql')) {
+      setSelectedDatabase(type);
     }
-    if (location.state && location.state.defaultType === 'mongodb') {
-      return 'mongodb';
-    }
-    return '';
-  });
+  }, [searchParams]);
 
   const handleDatabaseChange = useCallback((event: SelectChangeEvent) => {
     setSelectedDatabase(event.target.value as DatabaseType);
@@ -45,6 +41,8 @@ export function CreateDatabaseView() {
       setSelectedDatabase('mysql');
     } else if (location.state && location.state.defaultType === 'mongodb') {
       setSelectedDatabase('mongodb');
+    } else if (location.state && location.state.defaultType === 'postgresql') {
+      setSelectedDatabase('postgresql');
     }
   }, [location.state]);
 
@@ -95,11 +93,7 @@ export function CreateDatabaseView() {
               <Box sx={{ mt: 3 }}>
                 {selectedDatabase === 'mongodb' && <CreateMongoDatabaseView />}
                 {selectedDatabase === 'mysql' && <CreateMysqlDatabaseView />}
-                {selectedDatabase === 'postgresql' && (
-                  <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-                    PostgreSQL desteği yakında eklenecek!
-                  </Typography>
-                )}
+                {selectedDatabase === 'postgresql' && <CreatePostgreDatabaseView />}
               </Box>
             </>
           )}
