@@ -34,6 +34,11 @@ export const navData = [
         path: '/database/create',
         icon: icon('ic-user'),
       },
+      {
+        title: 'Destroy DB',
+        path: '/database/destroy',
+        icon: icon('ic-user'),
+      },
     ],
   },
 ];

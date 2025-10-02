@@ -176,20 +176,14 @@ class MysqlService {
     return response.triggerMysqlInstall.operation;
   }
 
-  async removeMysqlOperation(input: {
-    password: string;
-    remoteUser: string;
-    remoteIp: string;
-  }): Promise<any> {
+  async removeMysqlOperation(input: { uuid: string }): Promise<any> {
     const mutation = `
       mutation TriggerMysqlRemove($input: RemoveMysqlInput!) {
         triggerMysqlRemove(input: $input) {
-          success
-          message
+          ids
         }
       }
     `;
-
     return await this.executeGraphQL<any>(mutation, { input });
   }
 

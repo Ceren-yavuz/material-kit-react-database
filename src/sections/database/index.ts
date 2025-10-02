@@ -6,3 +6,4 @@ export { MysqlDatabaseTableRow } from './mysql-database-table-row';
 export { MysqlDatabaseTableHead } from './mysql-database-table-head';
 export { PostgreDatabaseTableRow } from './postgre-database-table-row';
 export { PostgreDatabaseTableHead } from './postgre-database-table-head';
+export { DestroyDatabaseView } from './destroy-database-view';

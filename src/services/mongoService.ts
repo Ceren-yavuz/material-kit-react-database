@@ -175,20 +175,14 @@ class MongoService {
     return response.triggerMongoInstall.operation;
   }
 
-  async removeMongoOperation(input: {
-    password: string;
-    remoteUser: string;
-    remoteIp: string;
-  }): Promise<any> {
+  async removeMongoOperation(input: { uuid: string }): Promise<any> {
     const mutation = `
       mutation TriggerMongoRemove($input: RemoveInput!) {
         triggerMongoRemove(input: $input) {
-          success
-          message
+          ids
         }
       }
     `;
-
     return await this.executeGraphQL<any>(mutation, { input });
   }
 
