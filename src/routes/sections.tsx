@@ -18,7 +18,7 @@ export const SignInPage = lazy(() => import('src/pages/sign-in'));
 export const ProductsPage = lazy(() => import('src/pages/products'));
 export const DatabasePage = lazy(() => import('src/pages/database'));
 export const DatabaseCreatePage = lazy(() => import('src/pages/database-create'));
-export const DatabaseDestroyPage = lazy(() => import('src/pages/database-destroy'));
+
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
 const renderFallback = () => (
@@ -54,7 +54,7 @@ export const routesSection: RouteObject[] = [
       { index: true, element: <DashboardPage /> },
   { path: 'database', element: <DatabasePage /> },
   { path: 'database/create', element: <DatabaseCreatePage /> },
-  { path: 'database/destroy', element: <DatabaseDestroyPage /> },
+
     ],
   },
   

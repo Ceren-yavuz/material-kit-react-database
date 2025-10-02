@@ -32,6 +32,12 @@ export function MysqlDatabaseView({ onCreateNew }: MysqlDatabaseViewProps) {
   const [databases, setDatabases] = useState<MysqlDatabase[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<string | null>(null);
+  // Destroy DB notification tetikleyici
+  const handleNotifyDestroy = () => {
+    setNotification('The selected database is being destroyed.');
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   // Fetch MySQL operations on component mount
   useEffect(() => {
@@ -121,6 +127,11 @@ export function MysqlDatabaseView({ onCreateNew }: MysqlDatabaseViewProps) {
         </Button>
       </Box>
 
+      {notification && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {notification}
+        </Alert>
+      )}
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {error}
@@ -175,6 +186,7 @@ export function MysqlDatabaseView({ onCreateNew }: MysqlDatabaseViewProps) {
                         row={row}
                         selected={table.selected.includes(row.uuid)}
                         onSelectRow={() => table.onSelectRow(row.uuid)}
+                        onNotifyDestroy={handleNotifyDestroy}
                       />
                     ))}
                 </TableBody>

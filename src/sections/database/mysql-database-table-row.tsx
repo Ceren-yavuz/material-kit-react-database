@@ -23,10 +23,31 @@ type MysqlDatabaseTableRowProps = {
   row: MysqlDatabaseProps;
   selected: boolean;
   onSelectRow: () => void;
+  onNotifyDestroy?: () => void;
 };
 
-export function MysqlDatabaseTableRow({ row, selected, onSelectRow }: MysqlDatabaseTableRowProps) {
+  export function MysqlDatabaseTableRow({ row, selected, onSelectRow, onNotifyDestroy }: MysqlDatabaseTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  // Destroy DB işlemi
+  const handleDestroyDb = async () => {
+    if (typeof onNotifyDestroy === 'function') {
+      onNotifyDestroy();
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      await mysqlService.removeMysqlOperation({ uuid: row.uuid });
+      setSuccess(true);
+    } catch (err) {
+      setError('Silme işlemi başarısız oldu');
+    } finally {
+      setLoading(false);
+      handleClosePopover();
+    }
+  };
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setOpenPopover(event.currentTarget);
@@ -111,9 +132,9 @@ export function MysqlDatabaseTableRow({ row, selected, onSelectRow }: MysqlDatab
             View Details
           </MenuItem>
 
-          <MenuItem onClick={handleClosePopover}>
-            <Iconify icon="solar:cart-3-bold" />
-            Clone
+          <MenuItem onClick={handleDestroyDb} sx={{ color: 'error.main' }}>
+            <Iconify icon="solar:trash-bin-trash-bold" />
+            Destroy DB
           </MenuItem>
 
           <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
