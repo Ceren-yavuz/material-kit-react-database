@@ -1,5 +1,6 @@
 import type { MysqlDatabase } from 'src/types/mysqltypes';
 
+import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -26,6 +27,7 @@ interface MysqlDatabaseViewProps {
 }
 
 export function MysqlDatabaseView({ onCreateNew }: MysqlDatabaseViewProps) {
+  const navigate = useNavigate();
   const table = useTable();
   const [databases, setDatabases] = useState<MysqlDatabase[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,7 +106,7 @@ export function MysqlDatabaseView({ onCreateNew }: MysqlDatabaseViewProps) {
           variant="contained"
           color="inherit"
           startIcon={<Iconify icon="mingcute:add-line" />}
-          onClick={onCreateNew}
+          onClick={() => navigate('/database/create', { state: { defaultType: 'mysql' } })}
         >
           New MySQL Database
         </Button>

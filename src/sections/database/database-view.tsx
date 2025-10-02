@@ -43,9 +43,17 @@ function a11yProps(index: number) {
 
 // ----------------------------------------------------------------------
 
+type DatabaseType = 'mysql' | 'mongodb' | '';
+
 export function DatabaseView() {
   const location = useLocation();
   const [value, setValue] = useState(0);
+  const [selectedDatabase, setSelectedDatabase] = useState<DatabaseType>(() => {
+    if (location.state && location.state.defaultType === 'mysql') {
+      return 'mysql';
+    }
+    return '';
+  });
 
   // Change tab based on ?type=mysql or ?type=mongodb
   useEffect(() => {

@@ -100,9 +100,9 @@ export function MongoDatabaseView() {
           variant="contained"
           color="inherit"
           startIcon={<Iconify icon="mingcute:add-line" />}
-          onClick={() => navigate('/database/create')}
+          onClick={() => navigate('/database/create', { state: { defaultType: 'mongodb' } })}
         >
-          New Database
+          New MongoDB Database
         </Button>
         <Button
           variant="outlined"

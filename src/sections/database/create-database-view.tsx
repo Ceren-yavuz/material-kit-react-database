@@ -1,6 +1,7 @@
 import type { SelectChangeEvent } from '@mui/material/Select';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -23,11 +24,29 @@ import { CreateMysqlDatabaseView } from './view/mysql-create-database-view';
 type DatabaseType = 'mongodb' | 'mysql' | 'postgresql' | '';
 
 export function CreateDatabaseView() {
-  const [selectedDatabase, setSelectedDatabase] = useState<DatabaseType>('');
+  const location = useLocation();
+  const [selectedDatabase, setSelectedDatabase] = useState<DatabaseType>(() => {
+    // If navigation state is set, use it for default selection
+    if (location.state && location.state.defaultType === 'mysql') {
+      return 'mysql';
+    }
+    if (location.state && location.state.defaultType === 'mongodb') {
+      return 'mongodb';
+    }
+    return '';
+  });
 
   const handleDatabaseChange = useCallback((event: SelectChangeEvent) => {
     setSelectedDatabase(event.target.value as DatabaseType);
   }, []);
+
+  useEffect(() => {
+    if (location.state && location.state.defaultType === 'mysql') {
+      setSelectedDatabase('mysql');
+    } else if (location.state && location.state.defaultType === 'mongodb') {
+      setSelectedDatabase('mongodb');
+    }
+  }, [location.state]);
 
   return (
     <Container maxWidth="md">
