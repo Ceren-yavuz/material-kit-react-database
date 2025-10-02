@@ -31,15 +31,6 @@ export function CreateMongoDatabaseView() {
   const [remoteUser, setRemoteUser] = useState('');
   const [remoteIp, setRemoteIp] = useState('');
   
-  // PostgreSQL API parameters
-  const [pgRemoteIp, setPgRemoteIp] = useState('');
-  const [pgSshUser, setPgSshUser] = useState('');
-  const [pgSshPassword, setPgSshPassword] = useState('');
-  const [pgDbVersion, setPgDbVersion] = useState('');
-  const [pgUseEdb, setPgUseEdb] = useState(false);
-  const [pgLicenseCode, setPgLicenseCode] = useState('');
-  const [pgCreatedBy, setPgCreatedBy] = useState('');
-  
   // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

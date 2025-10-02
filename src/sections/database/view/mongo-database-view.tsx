@@ -36,8 +36,7 @@ export function MongoDatabaseView() {
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<{
     mongo: boolean;
-    postgres: boolean;
-  }>({ mongo: false, postgres: false });
+  }>({ mongo: false });
 
   // Fetch all databases from both services
   useEffect(() => {
@@ -50,12 +49,14 @@ export function MongoDatabaseView() {
         const status = await unifiedDatabaseService.testAllConnections();
         setConnectionStatus(status);
         
-        if (!status.mongo && !status.postgres) {
-          throw new Error('Hiçbir backend servisine bağlanılamıyor. Lütfen backend\'lerin çalıştığından emin olun.');
+        if (!status.mongo) {
+          throw new Error('MongoDB servisine bağlanılamıyor. Lütfen MongoDB backend\'inin çalıştığından emin olun.');
         }
         
         const data = await unifiedDatabaseService.getAllDatabases();
-        setDatabases(data.combined);
+        // Filter only MongoDB databases
+        const mongoOnlyDatabases = data.combined.filter(db => db.type === 'mongodb');
+        setDatabases(mongoOnlyDatabases);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Veritabanları yüklenirken bir hata oluştu');
         console.error('Error fetching databases:', err);
@@ -77,12 +78,14 @@ export function MongoDatabaseView() {
         const status = await unifiedDatabaseService.testAllConnections();
         setConnectionStatus(status);
         
-        if (!status.mongo && !status.postgres) {
-          throw new Error('Hiçbir backend servisine bağlanılamıyor. Lütfen backend\'lerin çalıştığından emin olun.');
+        if (!status.mongo) {
+          throw new Error('MongoDB servisine bağlanılamıyor. Lütfen MongoDB backend\'inin çalıştığından emin olun.');
         }
         
         const data = await unifiedDatabaseService.getAllDatabases();
-        setDatabases(data.combined);
+        // Filter only MongoDB databases
+        const mongoOnlyDatabases = data.combined.filter(db => db.type === 'mongodb');
+        setDatabases(mongoOnlyDatabases);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Veritabanları yüklenirken bir hata oluştu');
         console.error('Error fetching databases:', err);
@@ -106,7 +109,7 @@ export function MongoDatabaseView() {
         }}
       >
         <Typography variant="h4" sx={{ flexGrow: 1 }}>
-          Database
+          MongoDB Databases
         </Typography>
         
         {/* Service Status Indicators */}
@@ -116,12 +119,6 @@ export function MongoDatabaseView() {
             color={connectionStatus.mongo ? 'success' : 'error'}
             size="small"
             variant={connectionStatus.mongo ? 'filled' : 'outlined'}
-          />
-          <Chip
-            label="PostgreSQL"
-            color={connectionStatus.postgres ? 'success' : 'error'}
-            size="small"
-            variant={connectionStatus.postgres ? 'filled' : 'outlined'}
           />
         </Box>
         

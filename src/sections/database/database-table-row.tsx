@@ -62,21 +62,21 @@ export function DatabaseTableRow({ row, selected, onSelectRow }: DatabaseTableRo
   const getStatusText = (status: string): string => {
     switch (status?.toLowerCase()) {
       case 'succeeded':
-        return 'Başarılı';
+        return 'SUCCEEDED';
       case 'completed':
-        return 'Tamamlandı';
+        return 'COMPLETED';
       case 'failed':
-        return 'Başarısız';
+        return 'FAILED';
       case 'provisioning':
-        return 'Hazırlanıyor';
+        return 'PROVISIONING';
       case 'in_progress':
-        return 'İşleniyor';
+        return 'IN PROGRESS';
       case 'deleting':
-        return 'Siliniyor';
+        return 'DELETING';
       case 'terminating':
-        return 'Sonlandırılıyor';
+        return 'TERMINATING';
       default:
-        return status || 'Bilinmiyor';
+        return status?.toUpperCase() || 'UNKNOWN';
     }
   };
 
