@@ -1,0 +1,418 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
+import CardContent from '@mui/material/CardContent';
+import CircularProgress from '@mui/material/CircularProgress';
+
+import mongoService from 'src/services/mongoService';
+import { postgresService, type CreatePostgresInput } from 'src/services/postgresService';
+import { DashboardContent } from 'src/layouts/dashboard';
+
+import { Iconify } from 'src/components/iconify';
+
+// ----------------------------------------------------------------------
+
+export function CreateDatabaseView() {
+  const navigate = useNavigate();
+  
+  // Database type selection
+  const [selectedDatabaseType, setSelectedDatabaseType] = useState('');
+  
+  // MongoDB API parameters
+  const [mongoEdition, setMongoEdition] = useState('');
+  const [mongoVersion, setMongoVersion] = useState('');
+  const [password, setPassword] = useState('');
+  const [remoteUser, setRemoteUser] = useState('');
+  const [remoteIp, setRemoteIp] = useState('');
+  
+  // PostgreSQL API parameters
+  const [pgRemoteIp, setPgRemoteIp] = useState('');
+  const [pgSshUser, setPgSshUser] = useState('');
+  const [pgSshPassword, setPgSshPassword] = useState('');
+  const [pgDbVersion, setPgDbVersion] = useState('');
+  const [pgUseEdb, setPgUseEdb] = useState(false);
+  const [pgLicenseCode, setPgLicenseCode] = useState('');
+  const [pgCreatedBy, setPgCreatedBy] = useState('');
+  
+  // UI state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const handleDatabaseTypeChange = (type: string) => {
+    setSelectedDatabaseType(type);
+    // Reset form fields when changing database type
+    setMongoEdition('');
+    setMongoVersion('');
+    setPassword('');
+    setRemoteUser('');
+    setRemoteIp('');
+    
+    // Reset PostgreSQL fields
+    setPgRemoteIp('');
+    setPgSshUser('');
+    setPgSshPassword('');
+    setPgDbVersion('');
+    setPgUseEdb(false);
+    setPgLicenseCode('');
+    setPgCreatedBy('');
+    
+    setError(null);
+    setSuccess(false);
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    
+    if (!selectedDatabaseType) {
+      setError('Lütfen bir veritabanı tipi seçin');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      if (selectedDatabaseType === 'mongodb') {
+        if (!mongoEdition || !mongoVersion || !password || !remoteUser || !remoteIp) {
+          setError('Lütfen tüm MongoDB alanlarını doldurun');
+          return;
+        }
+        
+        const result = await mongoService.createMongoOperation({
+          mongoEdition,
+          mongoVersion,
+          password,
+          remoteUser,
+          remoteIp,
+        });
+        
+        console.log('MongoDB operation created:', result);
+        
+      } else if (selectedDatabaseType === 'postgresql') {
+        if (!pgRemoteIp || !pgSshUser || !pgSshPassword || !pgDbVersion || !pgCreatedBy) {
+          setError('Lütfen tüm PostgreSQL alanlarını doldurun');
+          return;
+        }
+        
+        const pgInput: CreatePostgresInput = {
+          remote_ip: pgRemoteIp,
+          ssh_user: pgSshUser,
+          ssh_password: pgSshPassword,
+          dbVersion: pgDbVersion,
+          use_edb: pgUseEdb,
+          license_code: pgUseEdb ? (pgLicenseCode || '123') : '123',
+          createdBy: pgCreatedBy,
+        };
+        
+        const result = await postgresService.createPostgres(pgInput);
+        console.log('PostgreSQL database created:', result);
+      }
+      
+      setSuccess(true);
+      
+      // Redirect to database list after 2 seconds
+      setTimeout(() => {
+        navigate('/database');
+      }, 2000);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Veritabanı oluşturulurken bir hata oluştu');
+      console.error('Error creating database:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <DashboardContent>
+      <Box
+        sx={{
+          mb: 5,
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        <Typography variant="h4" sx={{ flexGrow: 1 }}>
+          Create New Database
+        </Typography>
+      </Box>
+
+      {success && (
+        <Alert severity="success" sx={{ mb: 3 }}>
+          MongoDB başarıyla oluşturuldu! Veritabanı listesine yönlendiriliyorsunuz...
+        </Alert>
+      )}
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      <Card>
+        <CardContent sx={{ p: 4 }}>
+          {/* Database Type Selection */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Database Type
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Button
+                variant={selectedDatabaseType === 'mongodb' ? 'contained' : 'outlined'}
+                onClick={() => handleDatabaseTypeChange('mongodb')}
+                disabled={loading}
+                sx={{ minWidth: 140 }}
+              >
+                MongoDB
+              </Button>
+              <Button
+                variant={selectedDatabaseType === 'mysql' ? 'contained' : 'outlined'}
+                onClick={() => handleDatabaseTypeChange('mysql')}
+                disabled={loading}
+                sx={{ minWidth: 140 }}
+              >
+                MySQL
+              </Button>
+              <Button
+                variant={selectedDatabaseType === 'postgresql' ? 'contained' : 'outlined'}
+                onClick={() => handleDatabaseTypeChange('postgresql')}
+                disabled={loading}
+                sx={{ minWidth: 140 }}
+              >
+                PostgreSQL
+              </Button>
+            </Box>
+          </Box>
+
+          {/* MongoDB Configuration Form */}
+          {selectedDatabaseType === 'mongodb' && (
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Typography variant="h6" sx={{ mb: 1 }}>
+                MongoDB Configuration
+              </Typography>
+              
+              <FormControl fullWidth required>
+                <InputLabel>MongoDB Edition</InputLabel>
+                <Select
+                  value={mongoEdition}
+                  onChange={(e) => setMongoEdition(e.target.value)}
+                  label="MongoDB Edition"
+                  disabled={loading}
+                >
+                  <MenuItem value="community">Community</MenuItem>
+                  <MenuItem value="enterprise">Enterprise</MenuItem>
+                </Select>
+              </FormControl>
+
+            <FormControl fullWidth required>
+              <InputLabel>MongoDB Version</InputLabel>
+              <Select
+                value={mongoVersion}
+                onChange={(e) => setMongoVersion(e.target.value)}
+                label="MongoDB Version"
+                disabled={loading}
+              >
+                <MenuItem value="8.0">8.0</MenuItem>
+                <MenuItem value="7.0">7.0</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              fullWidth
+              placeholder="SSH key path or password"
+              disabled={loading}
+              helperText="SSH key path for MongoDB installation"
+            />
+
+            <TextField
+              label="Remote User"
+              value={remoteUser}
+              onChange={(e) => setRemoteUser(e.target.value)}
+              required
+              fullWidth
+              placeholder="e.g., ubuntu, root"
+              disabled={loading}
+              helperText="Remote user for MongoDB installation"
+            />
+
+            <TextField
+              label="Remote IP"
+              value={remoteIp}
+              onChange={(e) => setRemoteIp(e.target.value)}
+              required
+              fullWidth
+              placeholder="e.g., 192.168.1.100"
+              disabled={loading}
+              helperText="Remote IP address for MongoDB installation"
+            />
+
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
+              <Button
+                variant="outlined"
+                color="inherit"
+                startIcon={<Iconify icon="eva:arrow-ios-upward-fill" />}
+                onClick={() => navigate('/database')}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <Iconify icon="mingcute:add-line" />}
+                disabled={loading}
+              >
+                {loading ? 'Creating...' : 'Create MongoDB'}
+              </Button>
+            </Box>
+            </Box>
+          )}
+
+          {/* PostgreSQL Configuration Form */}
+          {selectedDatabaseType === 'postgresql' && (
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Typography variant="h6" sx={{ mb: 1 }}>
+                PostgreSQL Configuration
+              </Typography>
+              
+              <TextField
+                label="Remote IP Address"
+                value={pgRemoteIp}
+                onChange={(e) => setPgRemoteIp(e.target.value)}
+                required
+                fullWidth
+                placeholder="e.g., 192.168.1.100"
+                disabled={loading}
+                helperText="IP address of the target VM"
+              />
+
+              <TextField
+                label="SSH Username"
+                value={pgSshUser}
+                onChange={(e) => setPgSshUser(e.target.value)}
+                required
+                fullWidth
+                placeholder="e.g., ubuntu, root"
+                disabled={loading}
+                helperText="SSH username for connecting to the VM"
+              />
+
+              <TextField
+                label="SSH Password"
+                type="password"
+                value={pgSshPassword}
+                onChange={(e) => setPgSshPassword(e.target.value)}
+                required
+                fullWidth
+                placeholder="SSH password"
+                disabled={loading}
+                helperText="SSH password for authentication"
+              />
+
+              <FormControl fullWidth required>
+                <InputLabel>Database Version</InputLabel>
+                <Select
+                  value={pgDbVersion}
+                  onChange={(e) => setPgDbVersion(e.target.value)}
+                  label="Database Version"
+                  disabled={loading}
+                >
+                  <MenuItem value="16">PostgreSQL 16</MenuItem>
+                  <MenuItem value="15">PostgreSQL 15</MenuItem>
+                  <MenuItem value="14">PostgreSQL 14</MenuItem>
+                  <MenuItem value="13">PostgreSQL 13</MenuItem>
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth>
+                <InputLabel>Use EDB</InputLabel>
+                <Select
+                  value={pgUseEdb ? 'true' : 'false'}
+                  onChange={(e) => setPgUseEdb(e.target.value === 'true')}
+                  label="Use EDB"
+                  disabled={loading}
+                >
+                  <MenuItem value="false">No (Community)</MenuItem>
+                  <MenuItem value="true">Yes (Enterprise)</MenuItem>
+                </Select>
+              </FormControl>
+
+              {pgUseEdb && (
+                <TextField
+                  label="License Code"
+                  value={pgLicenseCode}
+                  onChange={(e) => setPgLicenseCode(e.target.value)}
+                  fullWidth
+                  placeholder="EDB license code"
+                  disabled={loading}
+                  helperText="Required only when using EDB Enterprise"
+                />
+              )}
+
+              <TextField
+                label="Created By"
+                value={pgCreatedBy}
+                onChange={(e) => setPgCreatedBy(e.target.value)}
+                required
+                fullWidth
+                placeholder="e.g., admin@company.com"
+                disabled={loading}
+                helperText="Email or identifier of the person creating this database"
+              />
+
+              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  startIcon={<Iconify icon="eva:arrow-ios-upward-fill" />}
+                  onClick={() => navigate('/database')}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <Iconify icon="mingcute:add-line" />}
+                  disabled={loading}
+                >
+                  {loading ? 'Creating...' : 'Create PostgreSQL'}
+                </Button>
+              </Box>
+            </Box>
+          )}
+
+          {/* Coming Soon for other database types */}
+          {selectedDatabaseType && selectedDatabaseType !== 'mongodb' && selectedDatabaseType !== 'postgresql' && (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="h6" color="text.secondary">
+                {selectedDatabaseType.toUpperCase()} support coming soon!
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                Currently only MongoDB and PostgreSQL are supported.
+              </Typography>
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+    </DashboardContent>
+  );
+}

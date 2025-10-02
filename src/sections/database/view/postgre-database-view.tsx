@@ -1,4 +1,4 @@
-import type { PostgreDatabase } from 'src/types/postgretypes';
+import type { UnifiedDatabase } from 'src/types/databaseTypes';
 
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
@@ -13,13 +13,14 @@ import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import postgreService from 'src/services/postgreService';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
+import { useTable } from 'src/hooks/use-table';
 
-import { PostgreDatabaseTableRow, PostgreDatabaseTableHead } from 'src/sections/database';
+import { DatabaseTableRow, DatabaseTableHead } from 'src/sections/database';
+import unifiedDatabaseService, { DatabaseType } from 'src/services/unifiedDatabaseService';
 
 // ----------------------------------------------------------------------
 
@@ -30,7 +31,7 @@ interface PostgreDatabaseViewProps {
 export function PostgreDatabaseView() {
   const navigate = useNavigate();
   const table = useTable();
-  const [databases, setDatabases] = useState<PostgreDatabase[]>([]);
+  const [databases, setDatabases] = useState<UnifiedDatabase[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,14 +44,15 @@ export function PostgreDatabaseView() {
       
       // Test backend connectivity first
       console.log('PostgreSQL: Testing backend connection...');
-      const isConnected = await postgreService.testConnection();
-      console.log('PostgreSQL: Connection test result:', isConnected);
+      const connectionStatus = await unifiedDatabaseService.testAllConnections();
+      console.log('PostgreSQL: Connection test result:', connectionStatus);
       
-      if (!isConnected) {
+      if (!connectionStatus.postgres) {
         throw new Error('PostgreSQL backend servisine bağlanılamıyor. Lütfen backend\'in çalıştığından emin olun.');
       }
       
-      const data = await postgreService.getAllPostgreOperations();
+      const allDatabases = await unifiedDatabaseService.getAllDatabases();
+      const data = allDatabases.combined.filter(db => db.type === DatabaseType.POSTGRESQL);
       console.log('PostgreSQL: Fetched databases:', data);
       setDatabases(data);
     } catch (err) {
@@ -115,30 +117,25 @@ export function PostgreDatabaseView() {
           <Scrollbar>
             <TableContainer sx={{ overflow: 'unset' }}>
               <Table sx={{ minWidth: 800 }}>
-                <PostgreDatabaseTableHead
+                <DatabaseTableHead
                   order={table.order}
                   orderBy={table.orderBy}
                   rowCount={databases.length}
                   numSelected={table.selected.length}
                   onSort={table.onSort}
-                  checked={table.selected.length > 0 && table.selected.length === databases.length}
                   onSelectAllRows={(checked: boolean) =>
                     table.onSelectAllRows(
                       checked,
-                      databases.map((database) => database.uuid)
+                      databases.map((database) => database.id)
                     )
                   }
                   headLabel={[
-                    { id: 'postgreEdition', label: 'Edition' },
-                    { id: 'postgreVersion', label: 'Version' },
-                    { id: 'remoteUser', label: 'Remote User' },
-                    { id: 'remoteIp', label: 'Remote IP' },
+                    { id: 'name', label: 'Database' },
                     { id: 'status', label: 'Status' },
-                    { id: 'createdAt', label: 'Created At' },
+                    { id: 'remote_ip', label: 'Remote IP' },
+                    { id: 'dbVersion', label: 'Version' },
+                    { id: 'createdAt', label: 'Created' },
                     { id: 'createdBy', label: 'Created By' },
-                    { id: 'isDeleted', label: 'Is Deleted' },
-                    { id: 'deletedAt', label: 'Deleted At' },
-                    { id: 'updatedBy', label: 'Updated By' },
                     { id: '' },
                   ]}
                 />
@@ -149,11 +146,11 @@ export function PostgreDatabaseView() {
                       table.page * table.rowsPerPage + table.rowsPerPage
                     )
                     .map((row) => (
-                      <PostgreDatabaseTableRow
+                      <DatabaseTableRow
                         key={row.uuid}
                         row={row}
-                        selected={table.selected.includes(row.uuid)}
-                        onSelectRow={() => table.onSelectRow(row.uuid)}
+                        selected={table.selected.includes(row.id)}
+                        onSelectRow={() => table.onSelectRow(row.id)}
                       />
                     ))}
                 </TableBody>
@@ -174,72 +171,4 @@ export function PostgreDatabaseView() {
       )}
     </DashboardContent>
   );
-}
-
-// ----------------------------------------------------------------------
-
-export function useTable() {
-  const [page, setPage] = useState(0);
-  const [orderBy, setOrderBy] = useState('createdAt');
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [selected, setSelected] = useState<string[]>([]);
-  const [order, setOrder] = useState<'asc' | 'desc'>('desc');
-
-  const onSort = useCallback(
-    (id: string) => {
-      const isAsc = orderBy === id && order === 'asc';
-      setOrder(isAsc ? 'desc' : 'asc');
-      setOrderBy(id);
-    },
-    [order, orderBy]
-  );
-
-  const onSelectAllRows = useCallback((checked: boolean, newSelecteds: string[]) => {
-    if (checked) {
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  }, []);
-
-  const onSelectRow = useCallback(
-    (inputValue: string) => {
-      const newSelected = selected.includes(inputValue)
-        ? selected.filter((value) => value !== inputValue)
-        : [...selected, inputValue];
-
-      setSelected(newSelected);
-    },
-    [selected]
-  );
-
-  const onResetPage = useCallback(() => {
-    setPage(0);
-  }, []);
-
-  const onChangePage = useCallback((event: unknown, newPage: number) => {
-    setPage(newPage);
-  }, []);
-
-  const onChangeRowsPerPage = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
-      onResetPage();
-    },
-    [onResetPage]
-  );
-
-  return {
-    page,
-    order,
-    onSort,
-    orderBy,
-    selected,
-    rowsPerPage,
-    onSelectRow,
-    onResetPage,
-    onChangePage,
-    onSelectAllRows,
-    onChangeRowsPerPage,
-  };
 }

@@ -15,14 +15,17 @@ import CardContent from '@mui/material/CardContent';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import mongoService from 'src/services/mongoService';
+import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-export function CreateMongoDatabaseView() {
+export function CreateDatabaseView() {
   const navigate = useNavigate();
   
+  // Database type selection
+  const [selectedDatabaseType, setSelectedDatabaseType] = useState('');
   
   // MongoDB API parameters
   const [mongoEdition, setMongoEdition] = useState('');
@@ -31,30 +34,40 @@ export function CreateMongoDatabaseView() {
   const [remoteUser, setRemoteUser] = useState('');
   const [remoteIp, setRemoteIp] = useState('');
   
-  // PostgreSQL API parameters
-  const [pgRemoteIp, setPgRemoteIp] = useState('');
-  const [pgSshUser, setPgSshUser] = useState('');
-  const [pgSshPassword, setPgSshPassword] = useState('');
-  const [pgDbVersion, setPgDbVersion] = useState('');
-  const [pgUseEdb, setPgUseEdb] = useState(false);
-  const [pgLicenseCode, setPgLicenseCode] = useState('');
-  const [pgCreatedBy, setPgCreatedBy] = useState('');
-  
   // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  const handleDatabaseTypeChange = (type: string) => {
+    setSelectedDatabaseType(type);
+    // Reset form fields when changing database type
+    setMongoEdition('');
+    setMongoVersion('');
+    setPassword('');
+    setRemoteUser('');
+    setRemoteIp('');
+    setError(null);
+    setSuccess(false);
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    
+    if (selectedDatabaseType !== 'mongodb') {
+      setError('Şu anda sadece MongoDB desteklenmektedir');
+      return;
+    }
+    
     if (!mongoEdition || !mongoVersion || !password || !remoteUser || !remoteIp) {
       setError('Lütfen tüm alanları doldurun');
       return;
     }
+    
     try {
       setLoading(true);
       setError(null);
+      
       const result = await mongoService.createMongoOperation({
         mongoEdition,
         mongoVersion,
@@ -62,21 +75,37 @@ export function CreateMongoDatabaseView() {
         remoteUser,
         remoteIp,
       });
+      
       console.log('MongoDB operation created:', result);
       setSuccess(true);
+      
+      // Redirect to database list after 2 seconds
       setTimeout(() => {
         navigate('/database');
       }, 2000);
+      
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Veritabanı oluşturulurken bir hata oluştu');
-      console.error('Error creating database:', err);
+      setError(err instanceof Error ? err.message : 'MongoDB oluşturulurken bir hata oluştu');
+      console.error('Error creating MongoDB:', err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
+    <DashboardContent>
+      <Box
+        sx={{
+          mb: 5,
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        <Typography variant="h4" sx={{ flexGrow: 1 }}>
+          Create New Database
+        </Typography>
+      </Box>
+
       {success && (
         <Alert severity="success" sx={{ mb: 3 }}>
           MongoDB başarıyla oluşturuldu! Veritabanı listesine yönlendiriliyorsunuz...
@@ -91,22 +120,58 @@ export function CreateMongoDatabaseView() {
 
       <Card>
         <CardContent sx={{ p: 4 }}>
-          <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <Typography variant="h6" sx={{ mb: 1 }}>
-              MongoDB Configuration
+          {/* Database Type Selection */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Database Type
             </Typography>
-            <FormControl fullWidth required>
-              <InputLabel>MongoDB Edition</InputLabel>
-              <Select
-                value={mongoEdition}
-                onChange={(e) => setMongoEdition(e.target.value)}
-                label="MongoDB Edition"
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Button
+                variant={selectedDatabaseType === 'mongodb' ? 'contained' : 'outlined'}
+                onClick={() => handleDatabaseTypeChange('mongodb')}
                 disabled={loading}
+                sx={{ minWidth: 140 }}
               >
-                <MenuItem value="community">Community</MenuItem>
-                <MenuItem value="enterprise">Enterprise</MenuItem>
-              </Select>
-            </FormControl>
+                MongoDB
+              </Button>
+              <Button
+                variant={selectedDatabaseType === 'mysql' ? 'contained' : 'outlined'}
+                onClick={() => handleDatabaseTypeChange('mysql')}
+                disabled={loading}
+                sx={{ minWidth: 140 }}
+              >
+                MySQL
+              </Button>
+              <Button
+                variant={selectedDatabaseType === 'postgresql' ? 'contained' : 'outlined'}
+                onClick={() => handleDatabaseTypeChange('postgresql')}
+                disabled={loading}
+                sx={{ minWidth: 140 }}
+              >
+                PostgreSQL
+              </Button>
+            </Box>
+          </Box>
+
+          {/* MongoDB Configuration Form */}
+          {selectedDatabaseType === 'mongodb' && (
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Typography variant="h6" sx={{ mb: 1 }}>
+                MongoDB Configuration
+              </Typography>
+              
+              <FormControl fullWidth required>
+                <InputLabel>MongoDB Edition</InputLabel>
+                <Select
+                  value={mongoEdition}
+                  onChange={(e) => setMongoEdition(e.target.value)}
+                  label="MongoDB Edition"
+                  disabled={loading}
+                >
+                  <MenuItem value="community">Community</MenuItem>
+                  <MenuItem value="enterprise">Enterprise</MenuItem>
+                </Select>
+              </FormControl>
 
             <FormControl fullWidth required>
               <InputLabel>MongoDB Version</InputLabel>
@@ -128,9 +193,9 @@ export function CreateMongoDatabaseView() {
               onChange={(e) => setPassword(e.target.value)}
               required
               fullWidth
-              placeholder="SSH password"
+              placeholder="SSH key path or password"
               disabled={loading}
-              helperText="SSH password for MongoDB installation"
+              helperText="SSH key path for MongoDB installation"
             />
 
             <TextField
@@ -175,9 +240,22 @@ export function CreateMongoDatabaseView() {
                 {loading ? 'Creating...' : 'Create MongoDB'}
               </Button>
             </Box>
-          </Box>
+            </Box>
+          )}
+
+          {/* Coming Soon for other database types */}
+          {selectedDatabaseType && selectedDatabaseType !== 'mongodb' && (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="h6" color="text.secondary">
+                {selectedDatabaseType.toUpperCase()} support coming soon!
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                Currently only MongoDB is supported.
+              </Typography>
+            </Box>
+          )}
         </CardContent>
       </Card>
-    </>
+    </DashboardContent>
   );
 }

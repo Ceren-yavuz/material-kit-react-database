@@ -1,23 +1,24 @@
 import type { MongoDatabase } from 'src/types/mongotypes';
+import type { UnifiedDatabase } from 'src/types/databaseTypes';
 
 import { useState, useCallback } from 'react';
 
-import Popover from '@mui/material/Popover';
 import Checkbox from '@mui/material/Checkbox';
-import MenuList from '@mui/material/MenuList';
-import TableRow from '@mui/material/TableRow';
-import TableCell from '@mui/material/TableCell';
+import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
+import MenuList from '@mui/material/MenuList';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
-
-import mongoService from 'src/services/mongoService';
+import Popover from '@mui/material/Popover';
+import TableCell from '@mui/material/TableCell';
+import TableRow from '@mui/material/TableRow';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
+import { DatabaseType } from 'src/services/unifiedDatabaseService';
 
 // ----------------------------------------------------------------------
 
-export type DatabaseProps = MongoDatabase;
+export type DatabaseProps = UnifiedDatabase;
 
 type DatabaseTableRowProps = {
   row: DatabaseProps;
@@ -36,6 +37,49 @@ export function DatabaseTableRow({ row, selected, onSelectRow }: DatabaseTableRo
     setOpenPopover(null);
   }, []);
 
+  // Utility functions for status display
+  const getStatusColor = (status: string): 'default' | 'primary' | 'secondary' | 'info' | 'success' | 'warning' | 'error' => {
+    switch (status?.toLowerCase()) {
+      case 'succeeded':
+      case 'completed':
+      case 'active':
+        return 'success';
+      case 'failed':
+      case 'error':
+        return 'error';
+      case 'provisioning':
+      case 'in_progress':
+      case 'pending':
+        return 'warning';
+      case 'deleting':
+      case 'terminating':
+        return 'secondary';
+      default:
+        return 'default';
+    }
+  };
+
+  const getStatusText = (status: string): string => {
+    switch (status?.toLowerCase()) {
+      case 'succeeded':
+        return 'Başarılı';
+      case 'completed':
+        return 'Tamamlandı';
+      case 'failed':
+        return 'Başarısız';
+      case 'provisioning':
+        return 'Hazırlanıyor';
+      case 'in_progress':
+        return 'İşleniyor';
+      case 'deleting':
+        return 'Siliniyor';
+      case 'terminating':
+        return 'Sonlandırılıyor';
+      default:
+        return status || 'Bilinmiyor';
+    }
+  };
+
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
@@ -43,34 +87,52 @@ export function DatabaseTableRow({ row, selected, onSelectRow }: DatabaseTableRo
           <Checkbox disableRipple checked={selected} onChange={onSelectRow} />
         </TableCell>
 
-        <TableCell>{row.mongoEdition}</TableCell>
-
-        <TableCell>{row.mongoVersion}</TableCell>
-
-        <TableCell>{row.remoteUser}</TableCell>
-
-        <TableCell>{row.remoteIp}</TableCell>
-
+        {/* Database Type */}
         <TableCell>
-          <Label color={mongoService.getStatusColor(row.status)}>
-            {row.status}
+          <Chip
+            label={row.type === DatabaseType.MONGODB ? 'MongoDB' : 'PostgreSQL'}
+            color={row.type === DatabaseType.MONGODB ? 'success' : 'primary'}
+            size="small"
+          />
+        </TableCell>
+
+        {/* Name */}
+        <TableCell>{row.name || row.mongoEdition || '-'}</TableCell>
+
+        {/* Edition/Version */}
+        <TableCell>
+          {row.type === DatabaseType.MONGODB 
+            ? `${row.mongoEdition || ''} ${row.mongoVersion || ''}`.trim() || '-'
+            : row.description || '-'
+          }
+        </TableCell>
+
+        {/* User */}
+        <TableCell>
+          {row.type === DatabaseType.MONGODB ? row.remoteUser : row.username || '-'}
+        </TableCell>
+
+        {/* Host/IP */}
+        <TableCell>
+          {row.type === DatabaseType.MONGODB ? row.remoteIp : row.host || '-'}
+        </TableCell>
+
+        {/* Port */}
+        <TableCell>{row.port || '-'}</TableCell>
+
+        {/* Status */}
+        <TableCell>
+          <Label color={getStatusColor(row.status)}>
+            {getStatusText(row.status)}
           </Label>
         </TableCell>
 
-        <TableCell>{new Date(row.createdAt).toLocaleDateString('tr-TR')}</TableCell>
-
-        <TableCell>{row.createdBy}</TableCell>
-
+        {/* Created At */}
         <TableCell>
-          <Label color={row.isDeleted ? 'error' : 'success'}>
-            {row.isDeleted ? 'Deleted' : 'Active'}
-          </Label>
+          {row.createdAt ? new Date(row.createdAt).toLocaleDateString('tr-TR') : '-'}
         </TableCell>
 
-        <TableCell>{row.deletedAt ? new Date(row.deletedAt).toLocaleDateString('tr-TR') : '-'}</TableCell>
-
-        <TableCell>{row.updatedBy}</TableCell>
-
+        {/* Actions */}
         <TableCell align="right">
           <IconButton onClick={handleOpenPopover}>
             <Iconify icon="eva:more-vertical-fill" />
