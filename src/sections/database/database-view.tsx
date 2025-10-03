@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography';
 import { MongoDatabaseView } from './view/mongo-database-view';
 import { MysqlDatabaseView } from './view/mysql-database-view';
 import { PostgreDatabaseView } from './view/postgre-database-view';
+import { AllDatabaseView } from './view/all-database-view';
 
 // ----------------------------------------------------------------------
 
@@ -56,13 +57,14 @@ export function DatabaseView() {
     return '';
   });
 
-  // Change tab based on ?type=mysql or ?type=mongodb or ?type=postgresql
+  // Change tab based on ?type=mysql or ?type=mongodb or ?type=postgresql or ?type=all
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const type = params.get('type');
-    if (type === 'mysql') setValue(1);
+    if (type === 'all') setValue(0);
+    else if (type === 'mysql') setValue(1);
     else if (type === 'postgresql') setValue(2);
-    else if (type === 'mongodb') setValue(0);
+    else if (type === 'mongodb') setValue(3);
   }, [location.search]);
 
   const handleChange = useCallback((event: React.SyntheticEvent, newValue: number) => {
@@ -78,14 +80,15 @@ export function DatabaseView() {
       <Card>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={value} onChange={handleChange} aria-label="veritabanı türleri">
-            <Tab label="MongoDB" {...a11yProps(0)} />
+            <Tab label="All Databases" {...a11yProps(0)} />
             <Tab label="MySQL" {...a11yProps(1)} />
             <Tab label="PostgreSQL" {...a11yProps(2)} />
+            <Tab label="MongoDB" {...a11yProps(3)} />
           </Tabs>
         </Box>
 
         <TabPanel value={value} index={0}>
-          <MongoDatabaseView />
+          <AllDatabaseView />
         </TabPanel>
 
         <TabPanel value={value} index={1}>
@@ -94,6 +97,10 @@ export function DatabaseView() {
 
         <TabPanel value={value} index={2}>
           <PostgreDatabaseView />
+        </TabPanel>
+
+        <TabPanel value={value} index={3}>
+          <MongoDatabaseView />
         </TabPanel>
       </Card>
     </Container>

@@ -13,7 +13,7 @@ import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import postgreService from 'src/services/postgreService';
+import { postgresService, type CreatePostgresInput } from 'src/services/postgresService';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -23,12 +23,14 @@ interface CreatePostgreDatabaseViewProps {
 }
 
 export function CreatePostgreDatabaseView() {
-  // PostgreSQL API parameters
-  const [postgreEdition, setPostgreEdition] = useState('');
-  const [postgreVersion, setPostgreVersion] = useState('');
-  const [password, setPassword] = useState('');
-  const [remoteUser, setRemoteUser] = useState('');
+  // PostgreSQL API parameters (bizim backend için doğru field'lar)
   const [remoteIp, setRemoteIp] = useState('');
+  const [sshUser, setSshUser] = useState('');
+  const [sshPassword, setSshPassword] = useState('');
+  const [dbVersion, setDbVersion] = useState('');
+  const [useEdb, setUseEdb] = useState(false);
+  const [licenseCode, setLicenseCode] = useState('');
+  const [createdBy, setCreatedBy] = useState('');
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -37,28 +39,29 @@ export function CreatePostgreDatabaseView() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!postgreEdition || !postgreVersion || !password || !remoteUser || !remoteIp) {
-      setError('Lütfen tüm alanları doldurun');
+    if (!remoteIp || !sshUser || !sshPassword || !dbVersion || !createdBy) {
+      setError('Lütfen tüm gerekli alanları doldurun');
       return;
     }
     try {
       setLoading(true);
       setError(null);
-      const result = await postgreService.createPostgreOperation({
-        postgreEdition,
-        postgreVersion,
-        password,
-        remoteUser,
-        remoteIp,
-      });
+      
+      const input: CreatePostgresInput = {
+        remote_ip: remoteIp,
+        ssh_user: sshUser,
+        ssh_password: sshPassword,
+        dbVersion: dbVersion,
+        use_edb: useEdb,
+        license_code: useEdb ? licenseCode : '123', // Community version için 123
+        createdBy: createdBy,
+      };
+      
+      const result = await postgresService.createPostgres(input);
       console.log('PostgreSQL Database created:', result);
       setSuccess(true);
       // Reset form
-      setPostgreEdition('');
-      setPostgreVersion('');
-      setPassword('');
-      setRemoteUser('');
-      setRemoteIp('');
+      resetForm();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Veritabanı oluşturulurken bir hata oluştu');
     } finally {
@@ -67,11 +70,13 @@ export function CreatePostgreDatabaseView() {
   };
 
   const resetForm = () => {
-    setPostgreEdition('');
-    setPostgreVersion('');
-    setPassword('');
-    setRemoteUser('');
     setRemoteIp('');
+    setSshUser('');
+    setSshPassword('');
+    setDbVersion('');
+    setUseEdb(false);
+    setLicenseCode('');
+    setCreatedBy('');
     setError(null);
     setSuccess(false);
   };
@@ -97,57 +102,79 @@ export function CreatePostgreDatabaseView() {
       <Card>
         <CardContent>
           <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <FormControl fullWidth>
-              <InputLabel>PostgreSQL Edition</InputLabel>
-              <Select
-                value={postgreEdition}
-                label="PostgreSQL Edition"
-                onChange={(e) => setPostgreEdition(e.target.value)}
-              >
-                <MenuItem value="community">Community</MenuItem>
-                <MenuItem value="enterprise">Enterprise</MenuItem>
-                <MenuItem value="standard">Standard</MenuItem>
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth>
-              <InputLabel>PostgreSQL Version</InputLabel>
-              <Select
-                value={postgreVersion}
-                label="PostgreSQL Version"
-                onChange={(e) => setPostgreVersion(e.target.value)}
-              >
-                <MenuItem value="16.0">16.0</MenuItem>
-                <MenuItem value="15.4">15.4</MenuItem>
-                <MenuItem value="14.9">14.9</MenuItem>
-                <MenuItem value="13.12">13.12</MenuItem>
-                <MenuItem value="12.16">12.16</MenuItem>
-              </Select>
-            </FormControl>
-
-            <TextField
-              fullWidth
-              type="password"
-              label="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="PostgreSQL root şifresini girin"
-            />
-
-            <TextField
-              fullWidth
-              label="Remote User"
-              value={remoteUser}
-              onChange={(e) => setRemoteUser(e.target.value)}
-              placeholder="Uzak bağlantı kullanıcı adını girin"
-            />
-
             <TextField
               fullWidth
               label="Remote IP"
               value={remoteIp}
               onChange={(e) => setRemoteIp(e.target.value)}
-              placeholder="Uzak IP adresini girin (örn: 192.168.1.100)"
+              placeholder="Server IP adresini girin (örn: 192.168.1.100)"
+              required
+            />
+
+            <TextField
+              fullWidth
+              label="SSH User"
+              value={sshUser}
+              onChange={(e) => setSshUser(e.target.value)}
+              placeholder="SSH kullanıcı adını girin"
+              required
+            />
+
+            <TextField
+              fullWidth
+              type="password"
+              label="SSH Password"
+              value={sshPassword}
+              onChange={(e) => setSshPassword(e.target.value)}
+              placeholder="SSH şifresini girin"
+              required
+            />
+
+            <FormControl fullWidth>
+              <InputLabel>Database Version</InputLabel>
+              <Select
+                value={dbVersion}
+                label="Database Version"
+                onChange={(e) => setDbVersion(e.target.value)}
+                required
+              >
+                <MenuItem value="16">PostgreSQL 16</MenuItem>
+                <MenuItem value="15">PostgreSQL 15</MenuItem>
+                <MenuItem value="14">PostgreSQL 14</MenuItem>
+                <MenuItem value="13">PostgreSQL 13</MenuItem>
+                <MenuItem value="12">PostgreSQL 12</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel>PostgreSQL Edition</InputLabel>
+              <Select
+                value={useEdb ? 'edb' : 'community'}
+                label="PostgreSQL Edition"
+                onChange={(e) => setUseEdb(e.target.value === 'edb')}
+              >
+                <MenuItem value="community">Community (Ücretsiz)</MenuItem>
+                <MenuItem value="edb">Enterprise DB (Ücretli)</MenuItem>
+              </Select>
+            </FormControl>
+
+            {useEdb && (
+              <TextField
+                fullWidth
+                label="License Code"
+                value={licenseCode}
+                onChange={(e) => setLicenseCode(e.target.value)}
+                placeholder="EDB lisans kodunu girin"
+              />
+            )}
+
+            <TextField
+              fullWidth
+              label="Created By"
+              value={createdBy}
+              onChange={(e) => setCreatedBy(e.target.value)}
+              placeholder="İsteği yapan kişinin adını girin"
+              required
             />
 
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>

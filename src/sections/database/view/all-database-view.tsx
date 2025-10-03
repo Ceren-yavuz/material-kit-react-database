@@ -1,18 +1,18 @@
 import type { UnifiedDatabase } from 'src/types/databaseTypes';
 
-import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
-import Table from '@mui/material/Table';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
-import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
-import CircularProgress from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -20,98 +20,97 @@ import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import { useTable } from 'src/hooks/use-table';
 
-import { DatabaseTableRow, DatabaseTableHead } from 'src/sections/database';
+import { DatabaseTableRow } from '../database-table-row';
+import { DatabaseTableHead } from '../database-table-head';
 import unifiedDatabaseService, { DatabaseType } from 'src/services/unifiedDatabaseService';
 
 // ----------------------------------------------------------------------
 
-interface PostgreDatabaseViewProps {
-  // onCreateNew prop'u kaldırıldı, navigate kullanıyoruz
-}
-
-export function PostgreDatabaseView() {
+export function AllDatabaseView() {
   const navigate = useNavigate();
   const table = useTable();
   const [databases, setDatabases] = useState<UnifiedDatabase[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<{
+    mongo: boolean;
     postgres: boolean;
-  }>({ postgres: false });
+  }>({ mongo: false, postgres: false });
 
-  // Fetch PostgreSQL operations on component mount
-  const fetchDatabases = async () => {
-    try {
-      console.log('PostgreSQL: Starting to fetch databases...');
-      setLoading(true);
-      setError(null);
-      
-      // Test backend connectivity first
-      console.log('PostgreSQL: Testing backend connection...');
-      const connectionStatusResult = await unifiedDatabaseService.testAllConnections();
-      console.log('PostgreSQL: Connection test result:', connectionStatusResult);
-      setConnectionStatus({ postgres: connectionStatusResult.postgres });
-      
-      if (!connectionStatusResult.postgres) {
-        throw new Error('PostgreSQL backend servisine bağlanılamıyor. Lütfen backend\'in çalıştığından emin olun.');
-      }
-      
-      const allDatabases = await unifiedDatabaseService.getAllDatabases();
-      const data = allDatabases.combined.filter(db => db.type === DatabaseType.POSTGRESQL);
-      console.log('PostgreSQL: Fetched databases:', data);
-      setDatabases(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'PostgreSQL veritabanları yüklenirken bir hata oluştu');
-      console.error('PostgreSQL: Error fetching databases:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Fetch all databases from all services
   useEffect(() => {
+    const fetchDatabases = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Test all backend connections
+        const status = await unifiedDatabaseService.testAllConnections();
+        setConnectionStatus(status);
+        
+        if (!status.mongo && !status.postgres) {
+          throw new Error('Hiçbir backend servisine bağlanılamıyor. Lütfen backend\'lerin çalıştığından emin olun.');
+        }
+        
+        const data = await unifiedDatabaseService.getAllDatabases();
+        setDatabases(data.combined);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Veritabanları yüklenirken bir hata oluştu');
+        console.error('Error fetching databases:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchDatabases();
   }, []);
 
-  const handleRefresh = useCallback(() => {
+  const handleRefresh = () => {
+    const fetchDatabases = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Test all backend connections
+        const status = await unifiedDatabaseService.testAllConnections();
+        setConnectionStatus(status);
+        
+        if (!status.mongo && !status.postgres) {
+          throw new Error('Hiçbir backend servisine bağlanılamıyor. Lütfen backend\'lerin çalıştığından emin olun.');
+        }
+        
+        const data = await unifiedDatabaseService.getAllDatabases();
+        setDatabases(data.combined);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Veritabanları yüklenirken bir hata oluştu');
+        console.error('Error fetching databases:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchDatabases();
-  }, []);
+  };
 
   return (
     <DashboardContent>
-      <Box
-        sx={{
-          mb: 5,
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        <Typography variant="h4" sx={{ flexGrow: 1 }}>
-          PostgreSQL Databases
+      <Box display="flex" alignItems="center" mb={5}>
+        <Typography variant="h4" flexGrow={1}>
+          All Databases
         </Typography>
-        
-        {/* Service Status Indicators */}
-        <Box sx={{ display: 'flex', gap: 1, mr: 2 }}>
-          <Chip
-            label="PostgreSQL"
-            color={connectionStatus.postgres ? 'success' : 'error'}
-            size="small"
-            variant={connectionStatus.postgres ? 'filled' : 'outlined'}
-          />
-        </Box>
-        
         <Button
           variant="contained"
           color="inherit"
           startIcon={<Iconify icon="mingcute:add-line" />}
-          onClick={() => navigate('/database/create?type=postgresql')}
+          onClick={() => navigate('/database-create')}
         >
-          New PostgreSQL Database
+          New Database
         </Button>
         <Button
           variant="outlined"
-          color="inherit"
           startIcon={<Iconify icon="solar:restart-bold" />}
           onClick={handleRefresh}
+          disabled={loading}
           sx={{ ml: 1 }}
         >
           Refresh
@@ -139,7 +138,7 @@ export function PostgreDatabaseView() {
                   rowCount={databases.length}
                   numSelected={table.selected.length}
                   onSort={table.onSort}
-                  onSelectAllRows={(checked: boolean) =>
+                  onSelectAllRows={(checked) =>
                     table.onSelectAllRows(
                       checked,
                       databases.map((database) => database.id)
@@ -148,9 +147,9 @@ export function PostgreDatabaseView() {
                   headLabel={[
                     { id: 'type', label: 'Type' },
                     { id: 'name', label: 'Name' },
-                    { id: 'dbVersion', label: 'Version' },
-                    { id: 'sshUser', label: 'User' },
-                    { id: 'remoteIp', label: 'Host/IP' },
+                    { id: 'version', label: 'Version' },
+                    { id: 'user', label: 'User' },
+                    { id: 'host', label: 'Host/IP' },
                     { id: 'port', label: 'Port' },
                     { id: 'status', label: 'Status' },
                     { id: 'createdAt', label: 'Created' },

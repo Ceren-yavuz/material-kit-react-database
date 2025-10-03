@@ -15,7 +15,7 @@ import FormControl from '@mui/material/FormControl';
 
 import mongoService from 'src/services/mongoService';
 import mysqlService from 'src/services/mysqlService';
-import postgreService from 'src/services/postgreService';
+import { postgresService } from 'src/services/postgresService';
 
 type DatabaseType = 'mongodb' | 'mysql' | 'postgresql' | '';
 
@@ -50,7 +50,7 @@ export function DestroyDatabaseView() {
       } else if (selectedDatabaseType === 'mysql') {
         await mysqlService.removeMysqlOperation({ uuid: selectedDb.uuid });
       } else if (selectedDatabaseType === 'postgresql') {
-        await postgreService.deletePostgreOperation(selectedDb.uuid);
+        await postgresService.deletePostgreOperation(selectedDb.uuid);
       }
       setSuccess(true);
     } catch (err) {
@@ -94,8 +94,8 @@ export function DestroyDatabaseView() {
             remoteIp: db.remoteIp,
           })));
         } else if (selectedDatabaseType === 'postgresql') {
-          const result = await postgreService.getAllPostgreOperations();
-          setDbList(result.filter(db => !db.isDeleted).map(db => ({
+          const result = await postgresService.getAllPostgreOperations();
+          setDbList(result.filter((db: any) => !db.isDeleted).map((db: any) => ({
             uuid: db.uuid,
             name: db.name,
             password: db.password,

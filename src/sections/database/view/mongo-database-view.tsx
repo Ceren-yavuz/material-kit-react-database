@@ -1,33 +1,36 @@
 import type { MongoDatabase } from 'src/types/mongotypes';
+import type { UnifiedDatabase } from 'src/types/databaseTypes';
 
-import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
-import Table from '@mui/material/Table';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
-import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
-import CircularProgress from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography';
 
-import mongoService from 'src/services/mongoService';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
+import { useTable } from 'src/hooks/use-table';
 
 import { DatabaseTableRow } from '../database-table-row';
 import { DatabaseTableHead } from '../database-table-head';
+import unifiedDatabaseService, { DatabaseType } from 'src/services/unifiedDatabaseService';
 
 // ----------------------------------------------------------------------
 
 export function MongoDatabaseView() {
   const navigate = useNavigate();
   const table = useTable();
-  const [databases, setDatabases] = useState<MongoDatabase[]>([]);
+  const [databases, setDatabases] = useState<UnifiedDatabase[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
@@ -36,22 +39,29 @@ export function MongoDatabaseView() {
     setNotification('The selected database is being destroyed.');
     setTimeout(() => setNotification(null), 3000);
   };
+  const [connectionStatus, setConnectionStatus] = useState<{
+    mongo: boolean;
+  }>({ mongo: false });
 
-  // Fetch MongoDB operations on component mount
+  // Fetch all databases from both services
   useEffect(() => {
     const fetchDatabases = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // Test backend connectivity first
-        const isConnected = await mongoService.testConnection();
-        if (!isConnected) {
-          throw new Error('Backend servisine bağlanılamıyor. Lütfen backend\'in çalıştığından emin olun.');
+        // Test both backend connections
+        const status = await unifiedDatabaseService.testAllConnections();
+        setConnectionStatus(status);
+        
+        if (!status.mongo) {
+          throw new Error('MongoDB servisine bağlanılamıyor. Lütfen MongoDB backend\'inin çalıştığından emin olun.');
         }
         
-        const data = await mongoService.getAllMongoOperations();
-        setDatabases(data);
+        const data = await unifiedDatabaseService.getAllDatabases();
+        // Filter only MongoDB databases
+        const mongoOnlyDatabases = data.combined.filter(db => db.type === 'mongodb');
+        setDatabases(mongoOnlyDatabases);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Veritabanları yüklenirken bir hata oluştu');
         console.error('Error fetching databases:', err);
@@ -69,14 +79,18 @@ export function MongoDatabaseView() {
         setLoading(true);
         setError(null);
         
-        // Test backend connectivity first
-        const isConnected = await mongoService.testConnection();
-        if (!isConnected) {
-          throw new Error('Backend servisine bağlanılamıyor. Lütfen backend\'in çalıştığından emin olun.');
+        // Test both backend connections
+        const status = await unifiedDatabaseService.testAllConnections();
+        setConnectionStatus(status);
+        
+        if (!status.mongo) {
+          throw new Error('MongoDB servisine bağlanılamıyor. Lütfen MongoDB backend\'inin çalıştığından emin olun.');
         }
         
-        const data = await mongoService.getAllMongoOperations();
-        setDatabases(data);
+        const data = await unifiedDatabaseService.getAllDatabases();
+        // Filter only MongoDB databases
+        const mongoOnlyDatabases = data.combined.filter(db => db.type === 'mongodb');
+        setDatabases(mongoOnlyDatabases);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Veritabanları yüklenirken bir hata oluştu');
         console.error('Error fetching databases:', err);
@@ -105,8 +119,19 @@ export function MongoDatabaseView() {
         }}
       >
         <Typography variant="h4" sx={{ flexGrow: 1 }}>
-          Database
+          MongoDB Databases
         </Typography>
+        
+        {/* Service Status Indicators */}
+        <Box sx={{ display: 'flex', gap: 1, mr: 2 }}>
+          <Chip
+            label="MongoDB"
+            color={connectionStatus.mongo ? 'success' : 'error'}
+            size="small"
+            variant={connectionStatus.mongo ? 'filled' : 'outlined'}
+          />
+        </Box>
+        
         <Button
           variant="contained"
           color="inherit"
@@ -150,20 +175,18 @@ export function MongoDatabaseView() {
                   onSelectAllRows={(checked) =>
                     table.onSelectAllRows(
                       checked,
-                      databases.map((database) => database.uuid)
+                      databases.map((database) => database.id)
                     )
                   }
                   headLabel={[
-                    { id: 'mongoEdition', label: 'Edition' },
-                    { id: 'mongoVersion', label: 'Version' },
-                    { id: 'remoteUser', label: 'Remote User' },
-                    { id: 'remoteIp', label: 'Remote IP' },
+                    { id: 'type', label: 'Type' },
+                    { id: 'name', label: 'Name' },
+                    { id: 'mongoEdition', label: 'Edition/Version' },
+                    { id: 'remoteUser', label: 'User' },
+                    { id: 'remoteIp', label: 'Host/IP' },
+                    { id: 'port', label: 'Port' },
                     { id: 'status', label: 'Status' },
-                    { id: 'createdAt', label: 'Created At' },
-                    { id: 'createdBy', label: 'Created By' },
-                    { id: 'isDeleted', label: 'Is Deleted' },
-                    { id: 'deletedAt', label: 'Deleted At' },
-                    { id: 'updatedBy', label: 'Updated By' },
+                    { id: 'createdAt', label: 'Created' },
                     { id: '' },
                   ]}
                 />
@@ -175,10 +198,10 @@ export function MongoDatabaseView() {
                     )
                     .map((row) => (
                       <DatabaseTableRow
-                        key={row.uuid}
+                        key={row.id}
                         row={row}
-                        selected={table.selected.includes(row.uuid)}
-                        onSelectRow={() => table.onSelectRow(row.uuid)}
+                        selected={table.selected.includes(row.id)}
+                        onSelectRow={() => table.onSelectRow(row.id)}
                         onNotifyDestroy={handleNotifyDestroy}
                       />
                     ))}
@@ -201,72 +224,4 @@ export function MongoDatabaseView() {
       
     </DashboardContent>
   );
-}
-
-// ----------------------------------------------------------------------
-
-export function useTable() {
-  const [page, setPage] = useState(0);
-  const [orderBy, setOrderBy] = useState('');
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [selected, setSelected] = useState<string[]>([]);
-  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
-
-  const onSort = useCallback(
-    (id: string) => {
-      const isAsc = orderBy === id && order === 'asc';
-      setOrder(isAsc ? 'desc' : 'asc');
-      setOrderBy(id);
-    },
-    [order, orderBy]
-  );
-
-  const onSelectAllRows = useCallback((checked: boolean, newSelecteds: string[]) => {
-    if (checked) {
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  }, []);
-
-  const onSelectRow = useCallback(
-    (inputValue: string) => {
-      const newSelected = selected.includes(inputValue)
-        ? selected.filter((value) => value !== inputValue)
-        : [...selected, inputValue];
-
-      setSelected(newSelected);
-    },
-    [selected]
-  );
-
-  const onResetPage = useCallback(() => {
-    setPage(0);
-  }, []);
-
-  const onChangePage = useCallback((event: unknown, newPage: number) => {
-    setPage(newPage);
-  }, []);
-
-  const onChangeRowsPerPage = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
-      onResetPage();
-    },
-    [onResetPage]
-  );
-
-  return {
-    page,
-    order,
-    onSort,
-    orderBy,
-    selected,
-    rowsPerPage,
-    onSelectRow,
-    onResetPage,
-    onChangePage,
-    onSelectAllRows,
-    onChangeRowsPerPage,
-  };
 }

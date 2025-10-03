@@ -10,7 +10,7 @@ import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
-import postgreService from 'src/services/postgreService';
+import { postgresService } from 'src/services/postgresService';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -52,7 +52,7 @@ export function PostgreDatabaseTableRow({ row, selected, onSelectRow }: PostgreD
         <TableCell>{row.remoteIp}</TableCell>
 
         <TableCell>
-          <Label color={postgreService.getStatusColor(row.status)}>
+          <Label color={postgresService.getStatusColor(row.status)}>
             {row.status}
           </Label>
         </TableCell>

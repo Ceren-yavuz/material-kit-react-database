@@ -4,9 +4,20 @@ import { PostgreProvisionStatus } from '../types/postgretypes';
 import type { PostgreDatabase } from '../types/postgretypes';
 
 const POSTGRES_SERVICE_ENDPOINT = 'http://localhost:3001/graphql'; 
+
 interface GraphQLResponse<T> {
   data: T;
   errors?: any[];
+}
+
+export interface CreatePostgresInput {
+  remote_ip: string;
+  ssh_user: string;
+  ssh_password: string;
+  dbVersion: string;
+  use_edb: boolean;
+  license_code?: string;
+  createdBy: string;
 }
 
 
@@ -42,9 +53,9 @@ class PostgreService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-tenant-id': '30076493', 
-          'user': '{"tenantId":"30076493","email":"eh@e.com"}', 
-          'x-org-id': 'id:30076493:organization/00d31b82-50d4-4622-bbb5-ceb91e96f559', 
+          'x-tenant-id': '30076495', 
+          'user': '{"tenantId":"30076495","email":"eh@e.com"}',
+          'x-org-id': 'id:30076495:organization/00d31b82-50d4-4622-bbb5-ceb91e96f559',
         },
         body: JSON.stringify({
           query: '{ __schema { types { name } } }',
@@ -68,9 +79,9 @@ class PostgreService {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-tenant-id': '30076493',
-        'user': '{"tenantId":"30076493","email":"eh@e.com"}',
-        'x-org-id': 'id:30076493:organization/00d31b82-50d4-4622-bbb5-ceb91e96f559',
+        'x-tenant-id': '30076495',
+        'user': '{"tenantId":"30076495","email":"eh@e.com"}',
+        'x-org-id': 'id:30076495:organization/00d31b82-50d4-4622-bbb5-ceb91e96f559',
       },
       body: JSON.stringify({
         query,
@@ -171,8 +182,6 @@ class PostgreService {
     const mutation = `
       mutation CreatePostgres($input: CreatePgInput!) {
         createPostgres(input: $input) {
-          success
-          message
           postgres {
             uuid
             remote_ip
@@ -185,10 +194,6 @@ class PostgreService {
             status
             createdAt
             createdBy
-            updatedAt
-            updatedBy
-            isDeleted
-            deletedAt
           }
         }
       }
@@ -201,7 +206,7 @@ class PostgreService {
         ssh_password: data.password,
         dbVersion: data.postgreVersion,
         use_edb: data.postgreEdition === 'Enterprise',
-        license_code: data.name,
+        license_code: data.name || '123',
         createdBy: 'user', 
       };
 
@@ -223,11 +228,22 @@ class PostgreService {
         createdBy: backendItem.createdBy,
         updatedAt: backendItem.createdAt,
         updatedBy: backendItem.createdBy,
-        isDeleted: !!backendItem.deletedAt,
-        deletedAt: backendItem.deletedAt,
+        isDeleted: false,
+        deletedAt: null,
       };
     } catch (error) {
       console.error('Failed to create PostgreSQL operation:', error);
+      
+      // Handle specific database errors more gracefully
+      if (error instanceof Error) {
+        if (error.message.includes('relation "postgres" does not exist')) {
+          throw new Error('PostgreSQL backend veritabanı henüz kurulmamış. Lütfen sistem yöneticisiyle iletişime geçin.');
+        }
+        if (error.message.includes('400')) {
+          throw new Error('Geçersiz parametreler. Lütfen tüm alanları doğru şekilde doldurun.');
+        }
+      }
+      
       throw error;
     }
   }
@@ -321,7 +337,24 @@ class PostgreService {
         return 'default';
     }
   }
+
+  // Alias methods for unified service compatibility
+  getPostgres = this.getAllPostgreOperations;
+  
+  async createPostgres(input: CreatePostgresInput): Promise<PostgreDatabase> {
+    return this.createPostgreOperation({
+      postgreEdition: 'Standard',
+      postgreVersion: input.dbVersion,
+      password: input.ssh_password,
+      remoteUser: input.ssh_user,
+      remoteIp: input.remote_ip,
+      name: `postgres-${input.remote_ip}`,
+    });
+  }
 }
 
 const postgreService = new PostgreService();
+
+export { postgreService as postgresService };
+export type { PostgreDatabase } from '../types/postgretypes';
 export default postgreService;

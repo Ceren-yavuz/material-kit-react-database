@@ -59,8 +59,8 @@ export function CreateMongoDatabaseView() {
         navigate('/database');
       }, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'MongoDB oluşturulurken bir hata oluştu');
-      console.error('Error creating MongoDB:', err);
+      setError(err instanceof Error ? err.message : 'Veritabanı oluşturulurken bir hata oluştu');
+      console.error('Error creating database:', err);
     } finally {
       setLoading(false);
     }
