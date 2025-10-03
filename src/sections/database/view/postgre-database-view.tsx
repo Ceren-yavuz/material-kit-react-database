@@ -58,8 +58,14 @@ export function PostgreDatabaseView() {
       
       const allDatabases = await unifiedDatabaseService.getAllDatabases();
       const data = allDatabases.combined.filter(db => db.type === DatabaseType.POSTGRESQL);
-      console.log('PostgreSQL: Fetched databases:', data);
-      setDatabases(data);
+      // Sort by createdAt descending (newest first)
+      const sortedDatabases = data.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA; // Descending order
+      });
+      console.log('PostgreSQL: Fetched databases:', sortedDatabases);
+      setDatabases(sortedDatabases);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'PostgreSQL veritabanları yüklenirken bir hata oluştu');
       console.error('PostgreSQL: Error fetching databases:', err);

@@ -67,7 +67,13 @@ export function MysqlDatabaseView({ onCreateNew }: MysqlDatabaseViewProps) {
         const data = await unifiedDatabaseService.getAllDatabases();
         // Only show MySQL databases
         const mysqlDatabases = data.combined.filter(db => db.type === DatabaseType.MYSQL);
-        setDatabases(mysqlDatabases);
+        // Sort by createdAt descending (newest first)
+        const sortedDatabases = mysqlDatabases.sort((a, b) => {
+          const dateA = new Date(a.createdAt).getTime();
+          const dateB = new Date(b.createdAt).getTime();
+          return dateB - dateA; // Descending order
+        });
+        setDatabases(sortedDatabases);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'MySQL veritabanları yüklenirken bir hata oluştu');
         console.error('Error fetching MySQL databases:', err);
@@ -96,7 +102,13 @@ export function MysqlDatabaseView({ onCreateNew }: MysqlDatabaseViewProps) {
         const data = await unifiedDatabaseService.getAllDatabases();
         // Only show MySQL databases
         const mysqlDatabases = data.combined.filter(db => db.type === DatabaseType.MYSQL);
-        setDatabases(mysqlDatabases);
+        // Sort by createdAt descending (newest first)
+        const sortedDatabases = mysqlDatabases.sort((a, b) => {
+          const dateA = new Date(a.createdAt).getTime();
+          const dateB = new Date(b.createdAt).getTime();
+          return dateB - dateA; // Descending order
+        });
+        setDatabases(sortedDatabases);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'MySQL veritabanları yüklenirken bir hata oluştu');
         console.error('Error fetching MySQL databases:', err);

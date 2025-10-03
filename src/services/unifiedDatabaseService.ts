@@ -77,7 +77,6 @@ class UnifiedDatabaseService {
     mysql: MysqlDatabase[];
     combined: UnifiedDatabase[];
   }> {
-    console.log('UnifiedDatabaseService - getAllDatabases started...');
     const [mongoDatabases, postgresDatabases, mysqlDatabases] = await Promise.allSettled([
       mongoService.getAllMongoOperations(),
       postgresService.getPostgres(),
@@ -88,20 +87,11 @@ class UnifiedDatabaseService {
     const postgresResults = postgresDatabases.status === 'fulfilled' ? postgresDatabases.value : [];
     const mysqlResults = mysqlDatabases.status === 'fulfilled' ? mysqlDatabases.value : [];
 
-    console.log('UnifiedDatabaseService - MySQL Results:', mysqlResults);
-    console.log('UnifiedDatabaseService - MySQL Status:', mysqlDatabases.status);
-    if (mysqlDatabases.status === 'rejected') {
-      console.log('UnifiedDatabaseService - MySQL Error:', mysqlDatabases.reason);
-    }
-
     const combined = [
       ...mongoResults.map(mapMongoToUnified),
       ...postgresResults.map(mapPostgresToUnified),
       ...mysqlResults.map(mapMysqlToUnified)
     ];
-
-    console.log('UnifiedDatabaseService - Combined Results:', combined);
-    console.log('UnifiedDatabaseService - Combined Length:', combined.length);
 
     return {
       mongo: mongoResults,

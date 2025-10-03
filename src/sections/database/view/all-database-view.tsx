@@ -60,7 +60,13 @@ export function AllDatabaseView() {
         }
         
         const data = await unifiedDatabaseService.getAllDatabases();
-        setDatabases(data.combined);
+        // Sort by createdAt descending (newest first)
+        const sortedDatabases = data.combined.sort((a, b) => {
+          const dateA = new Date(a.createdAt).getTime();
+          const dateB = new Date(b.createdAt).getTime();
+          return dateB - dateA; // Descending order
+        });
+        setDatabases(sortedDatabases);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Veritabanları yüklenirken bir hata oluştu');
         console.error('Error fetching databases:', err);
@@ -87,7 +93,13 @@ export function AllDatabaseView() {
         }
         
         const data = await unifiedDatabaseService.getAllDatabases();
-        setDatabases(data.combined);
+        // Sort by createdAt descending (newest first)
+        const sortedDatabases = data.combined.sort((a, b) => {
+          const dateA = new Date(a.createdAt).getTime();
+          const dateB = new Date(b.createdAt).getTime();
+          return dateB - dateA; // Descending order
+        });
+        setDatabases(sortedDatabases);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Veritabanları yüklenirken bir hata oluştu');
         console.error('Error fetching databases:', err);
