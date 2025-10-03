@@ -32,11 +32,17 @@ export function AllDatabaseView() {
   const [databases, setDatabases] = useState<UnifiedDatabase[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<{
     mongo: boolean;
     postgres: boolean;
     mysql: boolean;
   }>({ mongo: false, postgres: false, mysql: false });
+  // Destroy DB notification tetikleyici
+  const handleNotifyDestroy = () => {
+    setNotification('The selected database is being destroyed.');
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   // Fetch all databases from all services
   useEffect(() => {
@@ -118,6 +124,11 @@ export function AllDatabaseView() {
         </Button>
       </Box>
 
+      {notification && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {notification}
+        </Alert>
+      )}
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {error}
@@ -169,6 +180,7 @@ export function AllDatabaseView() {
                         row={row}
                         selected={table.selected.includes(row.id)}
                         onSelectRow={() => table.onSelectRow(row.id)}
+                        onNotifyDestroy={handleNotifyDestroy}
                       />
                     ))}
                 </TableBody>
