@@ -1,7 +1,8 @@
+import { DatabaseType } from '../services/unifiedDatabaseService';
+
 import type { MongoDatabase } from './mongotypes';
 import type { MysqlDatabase } from './mysqltypes.tsx';
 import type { PostgreDatabase } from '../services/postgresService';
-import { DatabaseType } from '../services/unifiedDatabaseService';
 
 export interface UnifiedDatabase {
   id: string;

@@ -1,11 +1,11 @@
-import type { MongoDatabase } from '../types/mongotypes';
-import type { MysqlDatabase } from '../types/mysqltypes.tsx';
-import type { PostgreDatabase } from './postgresService';
-import { UnifiedDatabase, mapMongoToUnified, mapPostgresToUnified, mapMysqlToUnified } from '../types/databaseTypes';
-
 import mongoService from './mongoService';
 import mysqlService from './mysqlService';
 import { postgresService } from './postgresService';
+import { UnifiedDatabase, mapMongoToUnified, mapPostgresToUnified, mapMysqlToUnified } from '../types/databaseTypes';
+
+import type { MongoDatabase } from '../types/mongotypes';
+import type { PostgreDatabase } from './postgresService';
+import type { MysqlDatabase } from '../types/mysqltypes.tsx';
 
 export enum DatabaseType {
   MONGODB = 'mongodb',
