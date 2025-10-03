@@ -109,7 +109,7 @@ export function AllDatabaseView() {
           variant="contained"
           color="inherit"
           startIcon={<Iconify icon="mingcute:add-line" />}
-          onClick={() => navigate('/database-create')}
+          onClick={() => navigate('/database/create')}
         >
           New Database
         </Button>
