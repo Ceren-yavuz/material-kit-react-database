@@ -101,21 +101,6 @@ export function PostgreDatabaseTableRow({ row, selected, onSelectRow }: PostgreD
             },
           }}
         >
-          <MenuItem onClick={handleClosePopover}>
-            <Iconify icon="solar:pen-bold" />
-            Edit
-          </MenuItem>
-
-          <MenuItem onClick={handleClosePopover}>
-            <Iconify icon="solar:eye-bold" />
-            View Details
-          </MenuItem>
-
-          <MenuItem onClick={handleClosePopover}>
-            <Iconify icon="solar:cart-3-bold" />
-            Clone
-          </MenuItem>
-
           <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
             <Iconify icon="solar:trash-bin-trash-bold" />
             Delete

@@ -195,14 +195,6 @@ export function DatabaseTableRow({ row, selected, onSelectRow, onNotifyDestroy }
             },
           }}
         >
-          <MenuItem onClick={handleClosePopover}>
-            <Iconify icon="solar:pen-bold" />
-            Edit
-          </MenuItem>
-          <MenuItem onClick={handleClosePopover}>
-            <Iconify icon="solar:eye-bold" />
-            View Details
-          </MenuItem>
           <MenuItem onClick={handleDestroyDb} sx={{ color: 'error.main' }}>
             <Iconify icon="solar:trash-bin-trash-bold" />
             Destroy DB
