@@ -1,4 +1,5 @@
 import type { MongoDatabase } from './mongotypes';
+import type { MysqlDatabase } from './mysqltypes.tsx';
 import type { PostgreDatabase } from '../services/postgresService';
 import { DatabaseType } from '../services/unifiedDatabaseService';
 
@@ -71,5 +72,24 @@ export function mapPostgresToUnified(postgres: PostgreDatabase): UnifiedDatabase
     use_edb: postgres.postgreEdition === 'Enterprise',
     license_code: postgres.name,
     createdBy: postgres.createdBy,
+  };
+}
+
+export function mapMysqlToUnified(mysql: MysqlDatabase): UnifiedDatabase {
+  const createdAtString = typeof mysql.createdAt === 'string' 
+    ? mysql.createdAt 
+    : mysql.createdAt instanceof Date 
+    ? mysql.createdAt.toISOString() 
+    : String(mysql.createdAt);
+
+  return {
+    id: mysql.uuid,
+    name: `MySQL ${mysql.mysqlVersion}`,
+    status: mysql.status.toString(),
+    createdAt: createdAtString,
+    type: DatabaseType.MYSQL,
+    description: `MySQL ${mysql.mysqlVersion} (${mysql.mysqlEdition})`,
+    username: mysql.remoteUser,
+    host: mysql.remoteIp,
   };
 }

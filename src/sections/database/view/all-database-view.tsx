@@ -35,7 +35,8 @@ export function AllDatabaseView() {
   const [connectionStatus, setConnectionStatus] = useState<{
     mongo: boolean;
     postgres: boolean;
-  }>({ mongo: false, postgres: false });
+    mysql: boolean;
+  }>({ mongo: false, postgres: false, mysql: false });
 
   // Fetch all databases from all services
   useEffect(() => {
@@ -48,7 +49,7 @@ export function AllDatabaseView() {
         const status = await unifiedDatabaseService.testAllConnections();
         setConnectionStatus(status);
         
-        if (!status.mongo && !status.postgres) {
+        if (!status.mongo && !status.postgres && !status.mysql) {
           throw new Error('Hiçbir backend servisine bağlanılamıyor. Lütfen backend\'lerin çalıştığından emin olun.');
         }
         
@@ -75,7 +76,7 @@ export function AllDatabaseView() {
         const status = await unifiedDatabaseService.testAllConnections();
         setConnectionStatus(status);
         
-        if (!status.mongo && !status.postgres) {
+        if (!status.mongo && !status.postgres && !status.mysql) {
           throw new Error('Hiçbir backend servisine bağlanılamıyor. Lütfen backend\'lerin çalıştığından emin olun.');
         }
         

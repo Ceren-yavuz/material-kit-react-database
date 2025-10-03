@@ -110,8 +110,20 @@ export function DatabaseTableRow({ row, selected, onSelectRow, onNotifyDestroy }
         {/* Database Type */}
         <TableCell>
           <Chip
-            label={row.type === DatabaseType.MONGODB ? 'MongoDB' : 'PostgreSQL'}
-            color={row.type === DatabaseType.MONGODB ? 'success' : 'primary'}
+            label={
+              row.type === DatabaseType.MONGODB 
+                ? 'MongoDB' 
+                : row.type === DatabaseType.MYSQL 
+                ? 'MySQL' 
+                : 'PostgreSQL'
+            }
+            color={
+              row.type === DatabaseType.MONGODB 
+                ? 'success' 
+                : row.type === DatabaseType.MYSQL 
+                ? 'warning' 
+                : 'primary'
+            }
             size="small"
           />
         </TableCell>
