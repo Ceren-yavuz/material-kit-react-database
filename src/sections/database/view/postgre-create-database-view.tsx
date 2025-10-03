@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -23,6 +24,8 @@ interface CreatePostgreDatabaseViewProps {
 }
 
 export function CreatePostgreDatabaseView() {
+  const navigate = useNavigate();
+  
   // PostgreSQL API parameters (bizim backend için doğru field'lar)
   const [remoteIp, setRemoteIp] = useState('');
   const [sshUser, setSshUser] = useState('');
@@ -58,8 +61,11 @@ export function CreatePostgreDatabaseView() {
       };
       
       const result = await postgresService.createPostgres(input);
-      console.log('PostgreSQL Database created:', result);
+      console.log('PostgreSQL operation created:', result);
       setSuccess(true);
+      setTimeout(() => {
+        navigate('/database?type=postgresql');
+      }, 2000);
       // Reset form
       resetForm();
     } catch (err) {
@@ -82,10 +88,12 @@ export function CreatePostgreDatabaseView() {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        Create New PostgreSQL Database
-      </Typography>
+    <>
+      {success && (
+        <Alert severity="success" sx={{ mb: 3 }}>
+          PostgreSQL başarıyla oluşturuldu! Veritabanı listesine yönlendiriliyorsunuz...
+        </Alert>
+      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
@@ -93,50 +101,53 @@ export function CreatePostgreDatabaseView() {
         </Alert>
       )}
 
-      {success && (
-        <Alert severity="success" sx={{ mb: 3 }}>
-          PostgreSQL veritabanı başarıyla oluşturuldu!
-        </Alert>
-      )}
-
       <Card>
-        <CardContent>
+        <CardContent sx={{ p: 4 }}>
           <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              PostgreSQL Configuration
+            </Typography>
             <TextField
-              fullWidth
               label="Remote IP"
               value={remoteIp}
               onChange={(e) => setRemoteIp(e.target.value)}
-              placeholder="Server IP adresini girin (örn: 192.168.1.100)"
               required
+              fullWidth
+              placeholder="e.g., 192.168.1.100"
+              disabled={loading}
+              helperText="Remote IP address for PostgreSQL installation"
             />
 
             <TextField
-              fullWidth
               label="SSH User"
               value={sshUser}
               onChange={(e) => setSshUser(e.target.value)}
-              placeholder="SSH kullanıcı adını girin"
               required
+              fullWidth
+              placeholder="e.g., ubuntu, root"
+              disabled={loading}
+              helperText="SSH user for PostgreSQL installation"
             />
 
             <TextField
-              fullWidth
-              type="password"
               label="SSH Password"
+              type="password"
               value={sshPassword}
               onChange={(e) => setSshPassword(e.target.value)}
-              placeholder="SSH şifresini girin"
               required
+              fullWidth
+              placeholder="SSH password"
+              disabled={loading}
+              helperText="SSH password for PostgreSQL installation"
             />
 
-            <FormControl fullWidth>
-              <InputLabel>Database Version</InputLabel>
+            <FormControl fullWidth required>
+              <InputLabel>PostgreSQL Version</InputLabel>
               <Select
                 value={dbVersion}
-                label="Database Version"
                 onChange={(e) => setDbVersion(e.target.value)}
-                required
+                label="PostgreSQL Version"
+                disabled={loading}
               >
                 <MenuItem value="16">PostgreSQL 16</MenuItem>
                 <MenuItem value="15">PostgreSQL 15</MenuItem>
@@ -150,34 +161,39 @@ export function CreatePostgreDatabaseView() {
               <InputLabel>PostgreSQL Edition</InputLabel>
               <Select
                 value={useEdb ? 'edb' : 'community'}
-                label="PostgreSQL Edition"
                 onChange={(e) => setUseEdb(e.target.value === 'edb')}
+                label="PostgreSQL Edition"
+                disabled={loading}
               >
-                <MenuItem value="community">Community (Ücretsiz)</MenuItem>
-                <MenuItem value="edb">Enterprise DB (Ücretli)</MenuItem>
+                <MenuItem value="community">Community (Free)</MenuItem>
+                <MenuItem value="edb">Enterprise DB (Paid)</MenuItem>
               </Select>
             </FormControl>
 
             {useEdb && (
               <TextField
-                fullWidth
                 label="License Code"
                 value={licenseCode}
                 onChange={(e) => setLicenseCode(e.target.value)}
-                placeholder="EDB lisans kodunu girin"
+                fullWidth
+                placeholder="Enter EDB license code"
+                disabled={loading}
+                helperText="Required for Enterprise DB edition"
               />
             )}
 
             <TextField
-              fullWidth
               label="Created By"
               value={createdBy}
               onChange={(e) => setCreatedBy(e.target.value)}
-              placeholder="İsteği yapan kişinin adını girin"
               required
+              fullWidth
+              placeholder="Enter your name"
+              disabled={loading}
+              helperText="Name of the person making this request"
             />
 
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
               <Button
                 variant="outlined"
                 onClick={resetForm}
@@ -197,6 +213,6 @@ export function CreatePostgreDatabaseView() {
           </Box>
         </CardContent>
       </Card>
-    </Box>
+    </>
   );
 }

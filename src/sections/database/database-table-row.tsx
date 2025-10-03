@@ -14,6 +14,8 @@ import IconButton from '@mui/material/IconButton';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
 import mongoService from 'src/services/mongoService';
+import mysqlService from 'src/services/mysqlService';
+import { postgresService } from 'src/services/postgresService';
 import { DatabaseType } from 'src/services/unifiedDatabaseService';
 
 import { Label } from 'src/components/label';
@@ -52,7 +54,15 @@ export function DatabaseTableRow({ row, selected, onSelectRow, onNotifyDestroy }
     }
     try {
       setLoading(true);
-      await mongoService.removeMongoOperation({ uuid: row.uuid || row.id });
+      
+      if (row.type === DatabaseType.MONGODB) {
+        await mongoService.removeMongoOperation({ uuid: row.uuid || row.id });
+      } else if (row.type === DatabaseType.MYSQL) {
+        await mysqlService.removeMysqlOperation({ uuid: row.uuid || row.id });
+      } else if (row.type === DatabaseType.POSTGRESQL) {
+        await postgresService.removePostgreOperation({ uuid: row.uuid || row.id });
+      }
+      
       setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Database could not be destroyed');

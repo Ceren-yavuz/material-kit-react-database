@@ -50,7 +50,7 @@ export function DestroyDatabaseView() {
       } else if (selectedDatabaseType === 'mysql') {
         await mysqlService.removeMysqlOperation({ uuid: selectedDb.uuid });
       } else if (selectedDatabaseType === 'postgresql') {
-        await postgresService.deletePostgreOperation(selectedDb.uuid);
+        await postgresService.removePostgreOperation({ uuid: selectedDb.uuid });
       }
       setSuccess(true);
     } catch (err) {

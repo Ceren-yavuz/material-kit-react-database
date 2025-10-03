@@ -83,6 +83,10 @@ export function PostgreDatabaseView() {
     fetchDatabases();
   }, []);
 
+  const handleNotifyDestroy = useCallback(() => {
+    fetchDatabases(); // Destroy işleminden sonra listeyi yenile
+  }, []);
+
   return (
     <DashboardContent>
       <Box
@@ -155,9 +159,9 @@ export function PostgreDatabaseView() {
                   headLabel={[
                     { id: 'type', label: 'Type' },
                     { id: 'name', label: 'Name' },
-                    { id: 'dbVersion', label: 'Version' },
-                    { id: 'sshUser', label: 'User' },
-                    { id: 'remoteIp', label: 'Host/IP' },
+                    { id: 'version', label: 'Version' },
+                    { id: 'user', label: 'User' },
+                    { id: 'host', label: 'Host/IP' },
                     { id: 'port', label: 'Port' },
                     { id: 'status', label: 'Status' },
                     { id: 'createdAt', label: 'Created' },
@@ -176,6 +180,7 @@ export function PostgreDatabaseView() {
                         row={row}
                         selected={table.selected.includes(row.id)}
                         onSelectRow={() => table.onSelectRow(row.id)}
+                        onNotifyDestroy={handleNotifyDestroy}
                       />
                     ))}
                 </TableBody>

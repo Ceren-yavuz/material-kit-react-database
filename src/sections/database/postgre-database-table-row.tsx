@@ -23,10 +23,35 @@ type PostgreDatabaseTableRowProps = {
   row: PostgreDatabaseProps;
   selected: boolean;
   onSelectRow: () => void;
+  onNotifyDestroy?: () => void;
 };
 
-export function PostgreDatabaseTableRow({ row, selected, onSelectRow }: PostgreDatabaseTableRowProps) {
+export function PostgreDatabaseTableRow({ row, selected, onSelectRow, onNotifyDestroy }: PostgreDatabaseTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  
+  // Destroy DB işlemi
+  const handleDestroyDb = async () => {
+    if (typeof onNotifyDestroy === 'function') {
+      onNotifyDestroy();
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      console.log('PostgreSQL: Starting delete operation for UUID:', row.uuid);
+      await postgresService.removePostgreOperation({ uuid: row.uuid });
+      console.log('PostgreSQL: Delete operation successful');
+      setSuccess(true);
+    } catch (err) {
+      console.error('PostgreSQL: Delete operation failed:', err);
+      setError(err instanceof Error ? err.message : 'Silme işlemi başarısız oldu');
+    } finally {
+      setLoading(false);
+      handleClosePopover();
+    }
+  };
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setOpenPopover(event.currentTarget);
@@ -101,7 +126,12 @@ export function PostgreDatabaseTableRow({ row, selected, onSelectRow }: PostgreD
             },
           }}
         >
-          <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
+          <MenuItem onClick={handleDestroyDb} sx={{ color: 'error.main' }}>
+            <Iconify icon="solar:trash-bin-trash-bold" />
+            Destroy DB
+          </MenuItem>
+
+          <MenuItem onClick={handleDestroyDb} sx={{ color: 'error.main' }}>
             <Iconify icon="solar:trash-bin-trash-bold" />
             Delete
           </MenuItem>

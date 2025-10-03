@@ -270,18 +270,20 @@ class PostgreService {
     const mutation = `
       mutation DeletePostgres($input: DeletePgInput!) {
         DeletePostgres(input: $input) {
-          success
-          message
+          ids
         }
       }
     `;
 
     try {
-      const input = { uuid };
-      const result = await this.executeGraphQL<{ DeletePostgres: { success: boolean } }>(mutation, {
+      const input = { 
+        uuid,
+        deletedBy: 'user' // Backend schema'da gerekli olan deletedBy parametresi
+      };
+      const result = await this.executeGraphQL<{ DeletePostgres: { ids: string[] } }>(mutation, {
         input,
       });
-      return result.DeletePostgres.success;
+      return result.DeletePostgres.ids.length > 0;
     } catch (error) {
       console.error('Failed to delete PostgreSQL operation:', error);
       throw error;
@@ -340,6 +342,11 @@ class PostgreService {
 
   // Alias methods for unified service compatibility
   getPostgres = this.getAllPostgreOperations;
+  
+  // Remove PostgreSQL operation (alias for delete)
+  async removePostgreOperation(params: { uuid: string }): Promise<boolean> {
+    return this.deletePostgreOperation(params.uuid);
+  }
   
   async createPostgres(input: CreatePostgresInput): Promise<PostgreDatabase> {
     return this.createPostgreOperation({
