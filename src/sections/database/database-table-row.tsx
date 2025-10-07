@@ -114,9 +114,6 @@ export function DatabaseTableRow({ row, selected, onSelectRow, onNotifyDestroy }
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-        <TableCell padding="checkbox">
-          <Checkbox disableRipple checked={selected} onChange={onSelectRow} />
-        </TableCell>
 
         {/* Database Type */}
         <TableCell>
