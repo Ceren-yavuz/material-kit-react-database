@@ -130,11 +130,6 @@ export function PostgreDatabaseTableRow({ row, selected, onSelectRow, onNotifyDe
             <Iconify icon="solar:trash-bin-trash-bold" />
             Destroy DB
           </MenuItem>
-
-          <MenuItem onClick={handleDestroyDb} sx={{ color: 'error.main' }}>
-            <Iconify icon="solar:trash-bin-trash-bold" />
-            Delete
-          </MenuItem>
         </MenuList>
       </Popover>
     </>

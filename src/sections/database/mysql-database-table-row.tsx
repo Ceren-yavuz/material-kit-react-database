@@ -126,11 +126,6 @@ type MysqlDatabaseTableRowProps = {
             <Iconify icon="solar:trash-bin-trash-bold" />
             Destroy DB
           </MenuItem>
-
-          <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
-            <Iconify icon="solar:trash-bin-trash-bold" />
-            Delete
-          </MenuItem>
         </MenuList>
       </Popover>
     </>
