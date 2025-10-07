@@ -4,20 +4,18 @@ import type { UnifiedDatabase } from 'src/types/databaseTypes';
 import React, { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Chip from '@mui/material/Chip';
-import Alert from '@mui/material/Alert';
-import Typography from '@mui/material/Typography';
 import Popover from '@mui/material/Popover';
-import Checkbox from '@mui/material/Checkbox';
 import MenuList from '@mui/material/MenuList';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
+import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
 import mongoService from 'src/services/mongoService';
