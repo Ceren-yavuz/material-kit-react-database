@@ -2,6 +2,13 @@ import type { MysqlDatabase } from 'src/types/mysqltypes';
 
 import { useState, useCallback } from 'react';
 
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Typography from '@mui/material/Typography';
 import Popover from '@mui/material/Popover';
 import Checkbox from '@mui/material/Checkbox';
 import MenuList from '@mui/material/MenuList';
@@ -28,9 +35,21 @@ type MysqlDatabaseTableRowProps = {
 
   export function MysqlDatabaseTableRow({ row, selected, onSelectRow, onNotifyDestroy }: MysqlDatabaseTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  
+  // Destroy DB confirmation handler
+  const handleShowDestroyConfirm = () => {
+    setOpenConfirmDialog(true);
+    handleClosePopover();
+  };
+
+  const handleCloseConfirmDialog = () => {
+    setOpenConfirmDialog(false);
+  };
+  
   // Destroy DB işlemi
   const handleDestroyDb = async () => {
     if (typeof onNotifyDestroy === 'function') {
@@ -45,7 +64,7 @@ type MysqlDatabaseTableRowProps = {
       setError('Silme işlemi başarısız oldu');
     } finally {
       setLoading(false);
-      handleClosePopover();
+      setOpenConfirmDialog(false);
     }
   };
 
@@ -119,12 +138,58 @@ type MysqlDatabaseTableRowProps = {
             },
           }}
         >
-          <MenuItem onClick={handleDestroyDb} sx={{ color: 'error.main' }}>
+          <MenuItem onClick={handleShowDestroyConfirm} sx={{ color: 'error.main' }}>
             <Iconify icon="solar:trash-bin-trash-bold" />
             Destroy DB
           </MenuItem>
         </MenuList>
       </Popover>
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={openConfirmDialog}
+        onClose={handleCloseConfirmDialog}
+        aria-labelledby="destroy-confirm-dialog-title"
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle id="destroy-confirm-dialog-title">
+          Confirm Database Destruction
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" gutterBottom>
+            Are you sure you want to destroy this MySQL database?
+          </Typography>
+          <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
+            <Typography variant="subtitle2" gutterBottom>
+              Database Details:
+            </Typography>
+            <Typography variant="body2"><strong>Edition:</strong> {row.mysqlEdition}</Typography>
+            <Typography variant="body2"><strong>Version:</strong> {row.mysqlVersion}</Typography>
+            <Typography variant="body2"><strong>Host/IP:</strong> {row.remoteIp}</Typography>
+            <Typography variant="body2"><strong>User:</strong> {row.remoteUser}</Typography>
+            <Typography variant="body2"><strong>Status:</strong> {row.status}</Typography>
+            <Typography variant="body2"><strong>Created By:</strong> {row.createdBy}</Typography>
+            <Typography variant="body2"><strong>Created At:</strong> {new Date(row.createdAt).toLocaleDateString('tr-TR')}</Typography>
+          </Box>
+          <Typography variant="body2" color="error" sx={{ mt: 2 }}>
+            <strong>Warning:</strong> This action cannot be undone. All data will be permanently lost.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirmDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDestroyDb} 
+            color="error" 
+            variant="contained"
+            disabled={loading}
+          >
+            {loading ? 'Destroying...' : 'Destroy DB'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
