@@ -137,7 +137,7 @@ export function MysqlDatabaseView({ onCreateNew }: MysqlDatabaseViewProps) {
         <Box sx={{ display: 'flex', gap: 1, mr: 2 }}>
           <Chip
             label="MySQL"
-            color={connectionStatus.mysql ? 'success' : 'error'}
+            color={connectionStatus.mysql ? 'warning' : 'error'}
             size="small"
             variant={connectionStatus.mysql ? 'filled' : 'outlined'}
           />
