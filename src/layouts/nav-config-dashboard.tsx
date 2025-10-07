@@ -22,7 +22,7 @@ export const navData = [
   {
     title: 'Database',
     path: '#',
-    icon: icon('ic-storage'),
+    icon: icon('ic-cart'),
     children: [
       {
         title: 'DB List',
@@ -37,6 +37,24 @@ export const navData = [
       {
         title: 'Destroy DB',
         path: '/database/destroy',
+        icon: icon('ic-user'),
+      },
+    ],
+  },
+
+  {
+    title: 'Storage',
+    path: '#',
+    icon: icon('ic-blog'),
+    children: [
+      {
+        title: 'Storage List',
+        path: '/storage',
+        icon: icon('ic-analytics'),
+      },
+      {
+        title: 'Create Storage',
+        path: '/storage/create',
         icon: icon('ic-user'),
       },
     ],
