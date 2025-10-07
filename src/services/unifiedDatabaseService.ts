@@ -1,13 +1,16 @@
-import { API_ENDPOINTS } from '../config/backend-config';
-import type { MongoDatabase } from '../types/mongotypes';
-import { UnifiedDatabase, mapMongoToUnified, mapPostgresToUnified } from '../types/databaseTypes';
-
 import mongoService from './mongoService';
-import { postgresService, type PostgresDatabase } from './postgresService';
+import mysqlService from './mysqlService';
+import { postgresService } from './postgresService';
+import { UnifiedDatabase, mapMongoToUnified, mapPostgresToUnified, mapMysqlToUnified } from '../types/databaseTypes';
+
+import type { MongoDatabase } from '../types/mongotypes';
+import type { PostgreDatabase } from './postgresService';
+import type { MysqlDatabase } from '../types/mysqltypes.tsx';
 
 export enum DatabaseType {
   MONGODB = 'mongodb',
-  POSTGRESQL = 'postgresql'
+  POSTGRESQL = 'postgresql',
+  MYSQL = 'mysql'
 }
 
 export interface MongoCreateOptions {
@@ -32,88 +35,104 @@ export interface PostgresCreateOptions {
   createdBy: string;
 }
 
-export type DatabaseServiceOptions = MongoCreateOptions | PostgresCreateOptions;
+export interface MysqlCreateOptions {
+  type: DatabaseType.MYSQL;
+  mysqlEdition: string;
+  mysqlVersion: string;
+  password: string;
+  remoteUser: string;
+  remoteIp: string;
+  name?: string;
+  osVersion?: string;
+}
+
+export type DatabaseServiceOptions = MongoCreateOptions | PostgresCreateOptions | MysqlCreateOptions;
 
 class UnifiedDatabaseService {
-  // Test all backend connections through gateway
+  // Test all backend connections
   async testAllConnections(): Promise<{
     mongo: boolean;
     postgres: boolean;
-    gateway: boolean;
+    mysql: boolean;
   }> {
-    const [mongoConnection, postgresConnection, gatewayHealth] = await Promise.allSettled([
+    const [mongoConnection, postgresConnection, mysqlConnection] = await Promise.allSettled([
       mongoService.testConnection(),
       postgresService.testConnection(),
-      this.testGatewayHealth()
+      mysqlService.testConnection()
     ]);
 
     return {
       mongo: mongoConnection.status === 'fulfilled' ? mongoConnection.value : false,
       postgres: postgresConnection.status === 'fulfilled' ? postgresConnection.value : false,
-      gateway: gatewayHealth.status === 'fulfilled' ? gatewayHealth.value : false
+      mysql: mysqlConnection.status === 'fulfilled' ? mysqlConnection.value : false
     };
   }
 
-  // Test gateway health
-  async testGatewayHealth(): Promise<boolean> {
-    try {
-      const response = await fetch(API_ENDPOINTS.GATEWAY_HEALTH);
-      return response.ok;
-    } catch (error) {
-      console.error('Gateway health check failed:', error);
-      return false;
-    }
-  }
 
-  // Get all databases from both services through gateway
+
+  // Get all databases from all services
   async getAllDatabases(): Promise<{
     mongo: MongoDatabase[];
-    postgres: PostgresDatabase[];
+    postgres: PostgreDatabase[];
+    mysql: MysqlDatabase[];
     combined: UnifiedDatabase[];
   }> {
-    const [mongoDatabases, postgresDatabases] = await Promise.allSettled([
+    const [mongoDatabases, postgresDatabases, mysqlDatabases] = await Promise.allSettled([
       mongoService.getAllMongoOperations(),
-      postgresService.getPostgres()
+      postgresService.getPostgres(),
+      mysqlService.getAllMysqlOperations()
     ]);
 
     const mongoResults = mongoDatabases.status === 'fulfilled' ? mongoDatabases.value : [];
     const postgresResults = postgresDatabases.status === 'fulfilled' ? postgresDatabases.value : [];
+    const mysqlResults = mysqlDatabases.status === 'fulfilled' ? mysqlDatabases.value : [];
 
     const combined = [
       ...mongoResults.map(mapMongoToUnified),
-      ...postgresResults.map(mapPostgresToUnified)
+      ...postgresResults.map(mapPostgresToUnified),
+      ...mysqlResults.map(mapMysqlToUnified)
     ];
 
     return {
       mongo: mongoResults,
       postgres: postgresResults,
+      mysql: mysqlResults,
       combined
     };
   }
 
   // Get specific database
-  async getDatabase(id: string, type: DatabaseType): Promise<MongoDatabase | PostgresDatabase | null> {
+  async getDatabase(id: string, type: DatabaseType): Promise<MongoDatabase | PostgreDatabase | MysqlDatabase | null> {
     switch (type) {
       case DatabaseType.MONGODB:
         return mongoService.getMongoOperation(id);
-      case DatabaseType.POSTGRESQL:
+      case DatabaseType.POSTGRESQL: {
         // PostgreSQL service doesn't have getById method, would need to implement
         const allPostgres = await postgresService.getPostgres();
         return allPostgres.find(db => db.uuid === id) || null;
+      }
+      case DatabaseType.MYSQL:
+        return mysqlService.getMysqlOperation(id);
       default:
         throw new Error(`Unsupported database type: ${type}`);
     }
   }
 
   // Create database on specified service
-  async createDatabase(options: DatabaseServiceOptions): Promise<MongoDatabase | PostgresDatabase | null> {
+  async createDatabase(options: DatabaseServiceOptions): Promise<MongoDatabase | PostgreDatabase | MysqlDatabase | null> {
     switch (options.type) {
-      case DatabaseType.MONGODB:
+      case DatabaseType.MONGODB: {
         const { type: _, ...mongoInput } = options;
         return mongoService.createMongoOperation(mongoInput);
-      case DatabaseType.POSTGRESQL:
+      }
+      case DatabaseType.POSTGRESQL: {
         const { type: __, ...postgresInput } = options;
         return postgresService.createPostgres(postgresInput);
+      }
+      case DatabaseType.MYSQL: {
+        const { type: ___, ...mysqlInput } = options;
+        return mysqlService.createMysqlOperation(mysqlInput);
+      }
       default:
         throw new Error(`Unsupported database type: ${(options as any).type}`);
     }
@@ -123,12 +142,12 @@ class UnifiedDatabaseService {
   getServiceStatus(): {
     mongo: { url: string; port: number };
     postgres: { url: string; port: number };
-    gateway: { url: string; port: number };
+    mysql: { url: string; port: number };
   } {
     return {
-      mongo: { url: 'http://localhost:4000/api/mongodb/graphql', port: 3000 },
-      postgres: { url: 'http://localhost:4000/api/postgresql/graphql', port: 3001 },
-      gateway: { url: 'http://localhost:4000', port: 4000 }
+      mongo: { url: 'http://localhost:3000/graphql', port: 3000 },
+      postgres: { url: 'http://localhost:3001/graphql', port: 3001 },
+      mysql: { url: 'http://localhost:3000/graphql', port: 3000 }
     };
   }
 }

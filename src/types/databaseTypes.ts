@@ -1,6 +1,8 @@
-import type { MongoDatabase } from './mongotypes';
-import type { PostgresDatabase } from '../services/postgresService';
 import { DatabaseType } from '../services/unifiedDatabaseService';
+
+import type { MongoDatabase } from './mongotypes';
+import type { MysqlDatabase } from './mysqltypes.tsx';
+import type { PostgreDatabase } from '../services/postgresService';
 
 export interface UnifiedDatabase {
   id: string;
@@ -55,21 +57,40 @@ export function mapMongoToUnified(mongo: MongoDatabase): UnifiedDatabase {
   };
 }
 
-export function mapPostgresToUnified(postgres: PostgresDatabase): UnifiedDatabase {
+export function mapPostgresToUnified(postgres: PostgreDatabase): UnifiedDatabase {
   return {
     id: postgres.uuid,
-    name: `PostgreSQL ${postgres.dbVersion}`,
+    name: `PostgreSQL ${postgres.postgreVersion}`,
     status: postgres.status,
-    createdAt: postgres.createdAt,
+    createdAt: postgres.createdAt.toString(),
     type: DatabaseType.POSTGRESQL,
-    description: `PostgreSQL ${postgres.dbVersion} ${postgres.use_edb ? '(EDB)' : '(Community)'}`,
-    username: postgres.ssh_user,
-    host: postgres.remote_ip,
-    remote_ip: postgres.remote_ip,
-    ssh_user: postgres.ssh_user,
-    dbVersion: postgres.dbVersion,
-    use_edb: postgres.use_edb,
-    license_code: postgres.license_code,
+    description: `PostgreSQL ${postgres.postgreVersion} (${postgres.postgreEdition})`,
+    username: postgres.remoteUser,
+    host: postgres.remoteIp,
+    remote_ip: postgres.remoteIp,
+    ssh_user: postgres.remoteUser,
+    dbVersion: postgres.postgreVersion,
+    use_edb: postgres.postgreEdition === 'Enterprise',
+    license_code: postgres.name,
     createdBy: postgres.createdBy,
+  };
+}
+
+export function mapMysqlToUnified(mysql: MysqlDatabase): UnifiedDatabase {
+  const createdAtString = typeof mysql.createdAt === 'string' 
+    ? mysql.createdAt 
+    : mysql.createdAt instanceof Date 
+    ? mysql.createdAt.toISOString() 
+    : String(mysql.createdAt);
+
+  return {
+    id: mysql.uuid,
+    name: `MySQL ${mysql.mysqlVersion}`,
+    status: mysql.status.toString(),
+    createdAt: createdAtString,
+    type: DatabaseType.MYSQL,
+    description: `MySQL ${mysql.mysqlVersion} (${mysql.mysqlEdition})`,
+    username: mysql.remoteUser,
+    host: mysql.remoteIp,
   };
 }

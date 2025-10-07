@@ -1,3 +1,4 @@
+import { ProvisionStatus } from 'src/types/minioTypes';
 import { API_ENDPOINTS } from '../config/backend-config';
 
 import type { 
@@ -42,6 +43,30 @@ class MinioService {
     } catch (error) {
       console.error('MinIO service connection test failed:', error);
       return false;
+    }
+  }
+
+  // Helper method to get status color
+  getStatusColor(status: ProvisionStatus): 'default' | 'primary' | 'secondary' | 'info' | 'success' | 'warning' | 'error' {
+    switch (status) {
+      case ProvisionStatus.SUCCEEDED:
+        return 'success';
+      case ProvisionStatus.FAILED:
+      case ProvisionStatus.DELETING_FAILED:
+        return 'error';
+      case ProvisionStatus.PENDING:
+      case ProvisionStatus.INSTALLING:
+      case ProvisionStatus.TESTING:
+      case ProvisionStatus.DELETING_PENDING:
+      case ProvisionStatus.DELETING:
+        return 'secondary';
+      case ProvisionStatus.DELETED:
+      case ProvisionStatus.CANCELLED:
+        return 'info';
+      case ProvisionStatus.INSTALLED:
+        return 'success';
+      default:
+        return 'default';
     }
   }
 

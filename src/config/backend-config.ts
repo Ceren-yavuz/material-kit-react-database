@@ -1,15 +1,13 @@
 // Multi-backend service configuration
 export const BACKEND_CONFIG = {
   mongodb: {
-    endpoint: 'http://localhost:4000/api/mongodb/graphql',
-    // endpoint: 'http://localhost:3000/graphql',
+    endpoint: 'http://localhost:3000/graphql', 
     name: 'MongoDB Service',
     port: 3000,
     enabled: true
   },
   postgresql: {
-    endpoint: 'http://localhost:4000/api/postgresql/graphql',
-    // endpoint: 'http://localhost:3001/graphql', 
+    endpoint: 'http://localhost:3001/graphql', 
     name: 'PostgreSQL Service',
     port: 3001,
     enabled: true

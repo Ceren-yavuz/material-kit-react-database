@@ -48,10 +48,6 @@ export function CreateDatabaseView() {
 
   return (
     <Container maxWidth="md">
-      <Typography variant="h4" sx={{ mb: 5 }}>
-        Yeni Veritabanı Oluşturun
-      </Typography>
-
       <Card>
         <CardContent>
           <Box sx={{ mb: 5, display: 'flex', alignItems: 'center' }}>

@@ -9,10 +9,10 @@ import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
+import { AllDatabaseView } from './view/all-database-view';
 import { MongoDatabaseView } from './view/mongo-database-view';
 import { MysqlDatabaseView } from './view/mysql-database-view';
 import { PostgreDatabaseView } from './view/postgre-database-view';
-import { AllDatabaseView } from './view/all-database-view';
 
 // ----------------------------------------------------------------------
 

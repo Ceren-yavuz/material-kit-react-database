@@ -17,6 +17,7 @@ type StorageTableHeadProps = {
   onSort: (id: string) => void;
   headLabel: Record<string, any>[];
   onSelectAllRows: (checked: boolean) => void;
+  showCheckboxes?: boolean;
 };
 
 export function StorageTableHead({
@@ -27,19 +28,22 @@ export function StorageTableHead({
   headLabel,
   numSelected,
   onSelectAllRows,
+  showCheckboxes = false,
 }: StorageTableHeadProps) {
   return (
     <TableHead>
       <TableRow>
-        <TableCell padding="checkbox">
-          <Checkbox
-            indeterminate={numSelected > 0 && numSelected < rowCount}
-            checked={rowCount > 0 && numSelected === rowCount}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-              onSelectAllRows(event.target.checked)
-            }
-          />
-        </TableCell>
+        {showCheckboxes && (
+          <TableCell padding="checkbox">
+            <Checkbox
+              indeterminate={numSelected > 0 && numSelected < rowCount}
+              checked={rowCount > 0 && numSelected === rowCount}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                onSelectAllRows(event.target.checked)
+              }
+            />
+          </TableCell>
+        )}
 
         {headLabel.map((headCell) => (
           <TableCell

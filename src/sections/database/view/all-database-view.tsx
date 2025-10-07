@@ -1,28 +1,29 @@
 import type { UnifiedDatabase } from 'src/types/databaseTypes';
 
-import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
 
-import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import TableBody from '@mui/material/TableBody';
+import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
-import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+
+import { useTable } from 'src/hooks/use-table';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+import unifiedDatabaseService, { DatabaseType } from 'src/services/unifiedDatabaseService';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
-import { useTable } from 'src/hooks/use-table';
 
 import { DatabaseTableRow } from '../database-table-row';
 import { DatabaseTableHead } from '../database-table-head';
-import unifiedDatabaseService, { DatabaseType } from 'src/services/unifiedDatabaseService';
 
 // ----------------------------------------------------------------------
 
@@ -32,10 +33,17 @@ export function AllDatabaseView() {
   const [databases, setDatabases] = useState<UnifiedDatabase[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<{
     mongo: boolean;
     postgres: boolean;
-  }>({ mongo: false, postgres: false });
+    mysql: boolean;
+  }>({ mongo: false, postgres: false, mysql: false });
+  // Destroy DB notification tetikleyici
+  const handleNotifyDestroy = () => {
+    setNotification('The selected database is being destroyed.');
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   // Fetch all databases from all services
   useEffect(() => {
@@ -48,12 +56,18 @@ export function AllDatabaseView() {
         const status = await unifiedDatabaseService.testAllConnections();
         setConnectionStatus(status);
         
-        if (!status.mongo && !status.postgres) {
+        if (!status.mongo && !status.postgres && !status.mysql) {
           throw new Error('Hiçbir backend servisine bağlanılamıyor. Lütfen backend\'lerin çalıştığından emin olun.');
         }
         
         const data = await unifiedDatabaseService.getAllDatabases();
-        setDatabases(data.combined);
+        // Sort by createdAt descending (newest first)
+        const sortedDatabases = data.combined.sort((a, b) => {
+          const dateA = new Date(a.createdAt).getTime();
+          const dateB = new Date(b.createdAt).getTime();
+          return dateB - dateA; // Descending order
+        });
+        setDatabases(sortedDatabases);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Veritabanları yüklenirken bir hata oluştu');
         console.error('Error fetching databases:', err);
@@ -75,12 +89,18 @@ export function AllDatabaseView() {
         const status = await unifiedDatabaseService.testAllConnections();
         setConnectionStatus(status);
         
-        if (!status.mongo && !status.postgres) {
+        if (!status.mongo && !status.postgres && !status.mysql) {
           throw new Error('Hiçbir backend servisine bağlanılamıyor. Lütfen backend\'lerin çalıştığından emin olun.');
         }
         
         const data = await unifiedDatabaseService.getAllDatabases();
-        setDatabases(data.combined);
+        // Sort by createdAt descending (newest first)
+        const sortedDatabases = data.combined.sort((a, b) => {
+          const dateA = new Date(a.createdAt).getTime();
+          const dateB = new Date(b.createdAt).getTime();
+          return dateB - dateA; // Descending order
+        });
+        setDatabases(sortedDatabases);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Veritabanları yüklenirken bir hata oluştu');
         console.error('Error fetching databases:', err);
@@ -102,7 +122,7 @@ export function AllDatabaseView() {
           variant="contained"
           color="inherit"
           startIcon={<Iconify icon="mingcute:add-line" />}
-          onClick={() => navigate('/database-create')}
+          onClick={() => navigate('/database/create')}
         >
           New Database
         </Button>
@@ -117,6 +137,11 @@ export function AllDatabaseView() {
         </Button>
       </Box>
 
+      {notification && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {notification}
+        </Alert>
+      )}
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {error}
@@ -168,6 +193,7 @@ export function AllDatabaseView() {
                         row={row}
                         selected={table.selected.includes(row.id)}
                         onSelectRow={() => table.onSelectRow(row.id)}
+                        onNotifyDestroy={handleNotifyDestroy}
                       />
                     ))}
                 </TableBody>

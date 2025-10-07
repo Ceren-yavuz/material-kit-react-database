@@ -1,30 +1,30 @@
 import type { MongoDatabase } from 'src/types/mongotypes';
-import type { PostgresDatabase } from 'src/services/postgresService';
 import type { UnifiedDatabase } from 'src/types/databaseTypes';
 
-import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
 
-import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import TableBody from '@mui/material/TableBody';
+import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
-import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+
+import { useTable } from 'src/hooks/use-table';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+import unifiedDatabaseService, { DatabaseType } from 'src/services/unifiedDatabaseService';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
-import { useTable } from 'src/hooks/use-table';
 
 import { DatabaseTableRow } from '../database-table-row';
 import { DatabaseTableHead } from '../database-table-head';
-import unifiedDatabaseService, { DatabaseType } from 'src/services/unifiedDatabaseService';
 
 // ----------------------------------------------------------------------
 
@@ -34,6 +34,12 @@ export function MongoDatabaseView() {
   const [databases, setDatabases] = useState<UnifiedDatabase[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<string | null>(null);
+  // Destroy DB notification tetikleyici
+  const handleNotifyDestroy = () => {
+    setNotification('The selected database is being destroyed.');
+    setTimeout(() => setNotification(null), 3000);
+  };
   const [connectionStatus, setConnectionStatus] = useState<{
     mongo: boolean;
   }>({ mongo: false });
@@ -101,6 +107,11 @@ export function MongoDatabaseView() {
 
   return (
     <DashboardContent>
+      {notification && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {notification}
+        </Alert>
+      )}
       <Box
         sx={{
           mb: 5,
@@ -192,6 +203,7 @@ export function MongoDatabaseView() {
                         row={row}
                         selected={table.selected.includes(row.id)}
                         onSelectRow={() => table.onSelectRow(row.id)}
+                        onNotifyDestroy={handleNotifyDestroy}
                       />
                     ))}
                 </TableBody>

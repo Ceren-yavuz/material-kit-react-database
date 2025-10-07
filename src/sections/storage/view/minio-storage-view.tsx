@@ -134,8 +134,8 @@ export function MinioStorageView() {
           <Chip
             size="small"
             label="MinIO Service"
-            color={isConnected ? 'success' : 'error'}
             variant="outlined"
+            sx={{ borderColor: '#c62828', color: '#c62828' }}
           />
           
           <Button
@@ -198,6 +198,7 @@ export function MinioStorageView() {
                     { id: 'createdAt', label: 'Created At' },
                     { id: '', label: '' },
                   ]}
+                  showCheckboxes={false}
                 />
                 <TableBody>
                   {dataFiltered
@@ -212,6 +213,7 @@ export function MinioStorageView() {
                         selected={table.selected.includes(storage.remote_ip)}
                         onSelectRow={() => table.onSelectRow(storage.remote_ip)}
                         onNotifyDestroy={handleNotifyDestroy}
+                        showCheckbox={false}
                       />
                     ))}
                 </TableBody>

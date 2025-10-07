@@ -4,24 +4,25 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
 import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import { useTable } from 'src/hooks/use-table';
+
 import { DashboardContent } from 'src/layouts/dashboard';
+import unifiedDatabaseService, { DatabaseType } from 'src/services/unifiedDatabaseService';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
-import { useTable } from 'src/hooks/use-table';
 
 import { DatabaseTableRow, DatabaseTableHead } from 'src/sections/database';
-import unifiedDatabaseService, { DatabaseType } from 'src/services/unifiedDatabaseService';
 
 // ----------------------------------------------------------------------
 
@@ -58,8 +59,14 @@ export function PostgreDatabaseView() {
       
       const allDatabases = await unifiedDatabaseService.getAllDatabases();
       const data = allDatabases.combined.filter(db => db.type === DatabaseType.POSTGRESQL);
-      console.log('PostgreSQL: Fetched databases:', data);
-      setDatabases(data);
+      // Sort by createdAt descending (newest first)
+      const sortedDatabases = data.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA; // Descending order
+      });
+      console.log('PostgreSQL: Fetched databases:', sortedDatabases);
+      setDatabases(sortedDatabases);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'PostgreSQL veritabanları yüklenirken bir hata oluştu');
       console.error('PostgreSQL: Error fetching databases:', err);
@@ -74,6 +81,10 @@ export function PostgreDatabaseView() {
 
   const handleRefresh = useCallback(() => {
     fetchDatabases();
+  }, []);
+
+  const handleNotifyDestroy = useCallback(() => {
+    fetchDatabases(); // Destroy işleminden sonra listeyi yenile
   }, []);
 
   return (
@@ -148,9 +159,9 @@ export function PostgreDatabaseView() {
                   headLabel={[
                     { id: 'type', label: 'Type' },
                     { id: 'name', label: 'Name' },
-                    { id: 'dbVersion', label: 'Version' },
-                    { id: 'sshUser', label: 'User' },
-                    { id: 'remoteIp', label: 'Host/IP' },
+                    { id: 'version', label: 'Version' },
+                    { id: 'user', label: 'User' },
+                    { id: 'host', label: 'Host/IP' },
                     { id: 'port', label: 'Port' },
                     { id: 'status', label: 'Status' },
                     { id: 'createdAt', label: 'Created' },
@@ -165,10 +176,11 @@ export function PostgreDatabaseView() {
                     )
                     .map((row) => (
                       <DatabaseTableRow
-                        key={row.uuid}
+                        key={row.id}
                         row={row}
                         selected={table.selected.includes(row.id)}
                         onSelectRow={() => table.onSelectRow(row.id)}
+                        onNotifyDestroy={handleNotifyDestroy}
                       />
                     ))}
                 </TableBody>

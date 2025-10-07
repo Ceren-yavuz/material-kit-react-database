@@ -1,20 +1,25 @@
 import type { MongoDatabase } from 'src/types/mongotypes';
 import type { UnifiedDatabase } from 'src/types/databaseTypes';
 
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 
-import Checkbox from '@mui/material/Checkbox';
 import Chip from '@mui/material/Chip';
-import IconButton from '@mui/material/IconButton';
-import MenuList from '@mui/material/MenuList';
-import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
+import Alert from '@mui/material/Alert';
 import Popover from '@mui/material/Popover';
-import TableCell from '@mui/material/TableCell';
+import Checkbox from '@mui/material/Checkbox';
+import MenuList from '@mui/material/MenuList';
 import TableRow from '@mui/material/TableRow';
+import TableCell from '@mui/material/TableCell';
+import IconButton from '@mui/material/IconButton';
+import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
+
+import mongoService from 'src/services/mongoService';
+import mysqlService from 'src/services/mysqlService';
+import { postgresService } from 'src/services/postgresService';
+import { DatabaseType } from 'src/services/unifiedDatabaseService';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
-import { DatabaseType } from 'src/services/unifiedDatabaseService';
 
 // ----------------------------------------------------------------------
 
@@ -24,9 +29,14 @@ type DatabaseTableRowProps = {
   row: DatabaseProps;
   selected: boolean;
   onSelectRow: () => void;
+  onNotifyDestroy?: () => void;
 };
 
-export function DatabaseTableRow({ row, selected, onSelectRow }: DatabaseTableRowProps) {
+export function DatabaseTableRow({ row, selected, onSelectRow, onNotifyDestroy }: DatabaseTableRowProps): React.ReactElement {
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -37,15 +47,36 @@ export function DatabaseTableRow({ row, selected, onSelectRow }: DatabaseTableRo
     setOpenPopover(null);
   }, []);
 
-  // Utility functions for status display
-  const getStatusColor = (status: string): 'default' | 'primary' | 'secondary' | 'info' | 'success' | 'warning' | 'error' => {
+  // Destroy DB işlemi
+  const handleDestroyDb = async () => {
+    if (typeof onNotifyDestroy === 'function') {
+      onNotifyDestroy();
+    }
+    try {
+      setLoading(true);
+      
+      if (row.type === DatabaseType.MONGODB) {
+        await mongoService.removeMongoOperation({ uuid: row.uuid || row.id });
+      } else if (row.type === DatabaseType.MYSQL) {
+        await mysqlService.removeMysqlOperation({ uuid: row.uuid || row.id });
+      } else if (row.type === DatabaseType.POSTGRESQL) {
+        await postgresService.removePostgreOperation({ uuid: row.uuid || row.id });
+      }
+      
+      setSuccess(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Database could not be destroyed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'succeeded':
       case 'completed':
-      case 'active':
         return 'success';
       case 'failed':
-      case 'error':
         return 'error';
       case 'provisioning':
       case 'in_progress':
@@ -83,15 +114,24 @@ export function DatabaseTableRow({ row, selected, onSelectRow }: DatabaseTableRo
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-        <TableCell padding="checkbox">
-          <Checkbox disableRipple checked={selected} onChange={onSelectRow} />
-        </TableCell>
 
         {/* Database Type */}
         <TableCell>
           <Chip
-            label={row.type === DatabaseType.MONGODB ? 'MongoDB' : 'PostgreSQL'}
-            color={row.type === DatabaseType.MONGODB ? 'success' : 'primary'}
+            label={
+              row.type === DatabaseType.MONGODB 
+                ? 'MongoDB' 
+                : row.type === DatabaseType.MYSQL 
+                ? 'MySQL' 
+                : 'PostgreSQL'
+            }
+            color={
+              row.type === DatabaseType.MONGODB 
+                ? 'success' 
+                : row.type === DatabaseType.MYSQL 
+                ? 'warning' 
+                : 'primary'
+            }
             size="small"
           />
         </TableCell>
@@ -139,7 +179,7 @@ export function DatabaseTableRow({ row, selected, onSelectRow }: DatabaseTableRo
           </IconButton>
         </TableCell>
       </TableRow>
-
+      
       <Popover
         open={!!openPopover}
         anchorEl={openPopover}
@@ -163,24 +203,9 @@ export function DatabaseTableRow({ row, selected, onSelectRow }: DatabaseTableRo
             },
           }}
         >
-          <MenuItem onClick={handleClosePopover}>
-            <Iconify icon="solar:pen-bold" />
-            Edit
-          </MenuItem>
-
-          <MenuItem onClick={handleClosePopover}>
-            <Iconify icon="solar:eye-bold" />
-            View Details
-          </MenuItem>
-
-          <MenuItem onClick={handleClosePopover}>
-            <Iconify icon="solar:cart-3-bold" />
-            Clone
-          </MenuItem>
-
-          <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
+          <MenuItem onClick={handleDestroyDb} sx={{ color: 'error.main' }}>
             <Iconify icon="solar:trash-bin-trash-bold" />
-            Delete
+            Destroy DB
           </MenuItem>
         </MenuList>
       </Popover>

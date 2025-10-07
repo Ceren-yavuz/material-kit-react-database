@@ -10,7 +10,7 @@ import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
-import postgreService from 'src/services/postgreService';
+import { postgresService } from 'src/services/postgresService';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -23,10 +23,35 @@ type PostgreDatabaseTableRowProps = {
   row: PostgreDatabaseProps;
   selected: boolean;
   onSelectRow: () => void;
+  onNotifyDestroy?: () => void;
 };
 
-export function PostgreDatabaseTableRow({ row, selected, onSelectRow }: PostgreDatabaseTableRowProps) {
+export function PostgreDatabaseTableRow({ row, selected, onSelectRow, onNotifyDestroy }: PostgreDatabaseTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  
+  // Destroy DB işlemi
+  const handleDestroyDb = async () => {
+    if (typeof onNotifyDestroy === 'function') {
+      onNotifyDestroy();
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      console.log('PostgreSQL: Starting delete operation for UUID:', row.uuid);
+      await postgresService.removePostgreOperation({ uuid: row.uuid });
+      console.log('PostgreSQL: Delete operation successful');
+      setSuccess(true);
+    } catch (err) {
+      console.error('PostgreSQL: Delete operation failed:', err);
+      setError(err instanceof Error ? err.message : 'Silme işlemi başarısız oldu');
+    } finally {
+      setLoading(false);
+      handleClosePopover();
+    }
+  };
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setOpenPopover(event.currentTarget);
@@ -39,9 +64,6 @@ export function PostgreDatabaseTableRow({ row, selected, onSelectRow }: PostgreD
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-        <TableCell padding="checkbox">
-          <Checkbox disableRipple checked={selected} onChange={onSelectRow} />
-        </TableCell>
 
         <TableCell>{row.postgreEdition}</TableCell>
 
@@ -52,7 +74,7 @@ export function PostgreDatabaseTableRow({ row, selected, onSelectRow }: PostgreD
         <TableCell>{row.remoteIp}</TableCell>
 
         <TableCell>
-          <Label color={postgreService.getStatusColor(row.status)}>
+          <Label color={postgresService.getStatusColor(row.status)}>
             {row.status}
           </Label>
         </TableCell>
@@ -101,24 +123,9 @@ export function PostgreDatabaseTableRow({ row, selected, onSelectRow }: PostgreD
             },
           }}
         >
-          <MenuItem onClick={handleClosePopover}>
-            <Iconify icon="solar:pen-bold" />
-            Edit
-          </MenuItem>
-
-          <MenuItem onClick={handleClosePopover}>
-            <Iconify icon="solar:eye-bold" />
-            View Details
-          </MenuItem>
-
-          <MenuItem onClick={handleClosePopover}>
-            <Iconify icon="solar:cart-3-bold" />
-            Clone
-          </MenuItem>
-
-          <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
+          <MenuItem onClick={handleDestroyDb} sx={{ color: 'error.main' }}>
             <Iconify icon="solar:trash-bin-trash-bold" />
-            Delete
+            Destroy DB
           </MenuItem>
         </MenuList>
       </Popover>

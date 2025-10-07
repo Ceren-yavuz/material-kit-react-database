@@ -3,7 +3,7 @@ import { ProvisionStatus } from '../types/mongotypes';
 // MongoDB GraphQL API Service
 import type { MongoDatabase} from '../types/mongotypes';
 
-const MONGO_SERVICE_ENDPOINT = 'http://localhost:4000/api/mongodb/graphql'; // API Gateway MongoDB endpoint
+const MONGO_SERVICE_ENDPOINT = 'http://localhost:3000/graphql'; // Direct backend
 
 interface GraphQLResponse<T> {
   data: T;

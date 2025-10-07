@@ -221,8 +221,8 @@ export function CreateStorageView() {
                   label="License Code (Optional)"
                   value={formData.license_code}
                   onChange={handleInputChange('license_code')}
-                  helperText="MinIO enterprise license code (if available)"
-                  disabled={loading}
+                  helperText="MinIO enterprise license code (if enterprise version is selected)"
+                  disabled={loading || !formData.use_edb}
                 />
 
                 <FormControlLabel
@@ -233,7 +233,7 @@ export function CreateStorageView() {
                       disabled={loading}
                     />
                   }
-                  label="Use EDB (Enterprise Database)"
+                  label="Enterprise Version"
                 />
 
                 <Stack direction="row" spacing={2} justifyContent="flex-end">

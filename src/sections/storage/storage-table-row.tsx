@@ -26,9 +26,10 @@ type StorageTableRowProps = {
   selected: boolean;
   onSelectRow: () => void;
   onNotifyDestroy?: () => void;
+  showCheckbox?: boolean;
 };
 
-export function StorageTableRow({ row, selected, onSelectRow, onNotifyDestroy }: StorageTableRowProps) {
+export function StorageTableRow({ row, selected, onSelectRow, onNotifyDestroy, showCheckbox = true }: StorageTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
   const [openDestroy, setOpenDestroy] = useState(false);
 
@@ -92,12 +93,19 @@ export function StorageTableRow({ row, selected, onSelectRow, onNotifyDestroy }:
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-        <TableCell padding="checkbox">
-          <Checkbox disableRipple checked={selected} onChange={onSelectRow} />
-        </TableCell>
+        {showCheckbox && (
+          <TableCell padding="checkbox">
+            <Checkbox disableRipple checked={selected} onChange={onSelectRow} />
+          </TableCell>
+        )}
 
         <TableCell>
-          <Chip label="MinIO" color="primary" size="small" />
+          <Chip
+            label="MinIO"
+            size="small"
+            variant="filled"
+            sx={{ color: '#ffffff', backgroundColor: '#c62828', textColor: '#ffffff' }}
+          />
         </TableCell>
 
         <TableCell>{row.remote_ip}</TableCell>

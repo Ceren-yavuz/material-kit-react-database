@@ -153,8 +153,8 @@ export function AllStorageView() {
           <Chip
             size="small"
             label="MinIO"
-            color={connectionStatus.minio ? 'success' : 'error'}
             variant="outlined"
+            sx={{ borderColor: '#c62828', color: '#c62828' }}
           />
           
           <Button
@@ -229,6 +229,7 @@ export function AllStorageView() {
                     { id: 'createdAt', label: 'Created At' },
                     { id: '', label: '' },
                   ]}
+                  showCheckboxes={false}
                 />
                 <TableBody>
                   {dataFiltered
@@ -243,6 +244,7 @@ export function AllStorageView() {
                         selected={table.selected.includes(storage.remote_ip)}
                         onSelectRow={() => table.onSelectRow(storage.remote_ip)}
                         onNotifyDestroy={handleNotifyDestroy}
+                        showCheckbox={false}
                       />
                     ))}
                 </TableBody>
