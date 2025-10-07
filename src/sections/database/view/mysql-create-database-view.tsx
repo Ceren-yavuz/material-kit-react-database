@@ -38,7 +38,7 @@ export function CreateMysqlDatabaseView() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!mysqlEdition || !mysqlVersion || !password || !remoteUser || !remoteIp) {
-      setError('Lütfen tüm alanları doldurun');
+      setError('Please complete all fields');
       return;
     }
     try {
@@ -57,7 +57,7 @@ export function CreateMysqlDatabaseView() {
         window.location.href = '/database?type=mysql';
       }, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'MySQL oluşturulurken bir hata oluştu');
+      setError(err instanceof Error ? err.message : 'An error occurred while creating MySQL');
       console.error('Error creating MySQL:', err);
     } finally {
       setLoading(false);

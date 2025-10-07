@@ -56,7 +56,7 @@ export function MongoDatabaseView() {
         setConnectionStatus(status);
         
         if (!status.mongo) {
-          throw new Error('MongoDB servisine bağlanılamıyor. Lütfen MongoDB backend\'inin çalıştığından emin olun.');
+          throw new Error('Unable to connect to the MongoDB service. Please ensure that the MongoDB backend is running.');
         }
         
         const data = await unifiedDatabaseService.getAllDatabases();
@@ -64,7 +64,7 @@ export function MongoDatabaseView() {
         const mongoOnlyDatabases = data.combined.filter(db => db.type === 'mongodb');
         setDatabases(mongoOnlyDatabases);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Veritabanları yüklenirken bir hata oluştu');
+        setError(err instanceof Error ? err.message : 'An error occurred while loading databases');
         console.error('Error fetching databases:', err);
       } finally {
         setLoading(false);
@@ -85,7 +85,7 @@ export function MongoDatabaseView() {
         setConnectionStatus(status);
         
         if (!status.mongo) {
-          throw new Error('MongoDB servisine bağlanılamıyor. Lütfen MongoDB backend\'inin çalıştığından emin olun.');
+          throw new Error('Unable to connect to the MongoDB service. Please ensure that the MongoDB backend is running.');
         }
         
         const data = await unifiedDatabaseService.getAllDatabases();
@@ -93,7 +93,7 @@ export function MongoDatabaseView() {
         const mongoOnlyDatabases = data.combined.filter(db => db.type === 'mongodb');
         setDatabases(mongoOnlyDatabases);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Veritabanları yüklenirken bir hata oluştu');
+        setError(err instanceof Error ? err.message : 'An error occurred while loading databases');
         console.error('Error fetching databases:', err);
       } finally {
         setLoading(false);

@@ -39,7 +39,7 @@ export function DestroyDatabaseView() {
   // Silme işlemi dummy
   const handleDestroy = async () => {
     if (!selectedDb) {
-      setError('Lütfen bir veritabanı seçin');
+      setError('Please select a database');
       return;
     }
     setLoading(true);
@@ -54,7 +54,7 @@ export function DestroyDatabaseView() {
       }
       setSuccess(true);
     } catch (err) {
-      setError('Silme işlemi başarısız oldu');
+      setError('An error occurred while deleting the database');
     } finally {
       setLoading(false);
     }
@@ -104,7 +104,7 @@ export function DestroyDatabaseView() {
           })));
         }
       } catch (err) {
-        setError('Veritabanı listesi alınamadı');
+        setError('An error occurred while fetching the database list');
       } finally {
         setFetching(false);
       }
@@ -114,7 +114,7 @@ export function DestroyDatabaseView() {
     }
   }, [selectedDatabaseType]);
 
-  // Render edilen alan
+  // Render editing area
   const renderDestroyForm = () => {
     let label = '';
     if (selectedDatabaseType === 'mongodb') {
@@ -132,10 +132,10 @@ export function DestroyDatabaseView() {
             {label} Silme
           </Typography>
           <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel>Veritabanı Seç</InputLabel>
+            <InputLabel>Select Database</InputLabel>
             <Select
               value={selectedDb?.uuid || ''}
-              label="Veritabanı Seç"
+              label="Select Database"
               onChange={e => {
                 const db = dbList.find(item => item.uuid === e.target.value);
                 setSelectedDb(db || null);
@@ -144,7 +144,7 @@ export function DestroyDatabaseView() {
             >
               {dbList.length === 0 && !fetching && (
                 <MenuItem value="" disabled>
-                  Kayıtlı veritabanı yok
+                  No registered database
                 </MenuItem>
               )}
               {dbList.map(db => (
@@ -158,7 +158,7 @@ export function DestroyDatabaseView() {
             disabled={loading || !selectedDb}
             onClick={handleDestroy}
           >
-            {loading ? 'Siliniyor...' : 'Veritabanını Sil'}
+            {loading ? 'Deleting...' : 'Delete Database'}
           </Button>
         </CardContent>
       </Card>
@@ -206,12 +206,12 @@ export function DestroyDatabaseView() {
             </Box>
           </Box>
           <Typography variant="body1" sx={{ mb: 3 }}>
-            Buradan bir veritabanını kalıcı olarak silebilirsiniz. Lütfen dikkatli olun!
+            You can permanently delete a database from here. Please be careful!
           </Typography>
           <Divider sx={{ my: 2 }} />
           {success && (
             <Alert severity="success" sx={{ mb: 2 }}>
-              Veritabanı başarıyla silindi!
+              Database deleted successfully!
             </Alert>
           )}
           {error && (

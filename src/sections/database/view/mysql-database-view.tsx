@@ -62,7 +62,7 @@ export function MysqlDatabaseView({ onCreateNew }: MysqlDatabaseViewProps) {
         setConnectionStatus(status);
         
         if (!status.mysql) {
-          throw new Error('MySQL backend servisine bağlanılamıyor. Lütfen backend\'in çalıştığından emin olun.');
+          throw new Error('Unable to connect to the MySQL backend service. Please ensure the backend is running.');
         }
         
         const data = await unifiedDatabaseService.getAllDatabases();
@@ -76,7 +76,7 @@ export function MysqlDatabaseView({ onCreateNew }: MysqlDatabaseViewProps) {
         });
         setDatabases(sortedDatabases);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'MySQL veritabanları yüklenirken bir hata oluştu');
+        setError(err instanceof Error ? err.message : 'An error occurred while fetching MySQL databases');
         console.error('Error fetching MySQL databases:', err);
       } finally {
         setLoading(false);
@@ -97,7 +97,7 @@ export function MysqlDatabaseView({ onCreateNew }: MysqlDatabaseViewProps) {
         setConnectionStatus(status);
         
         if (!status.mysql) {
-          throw new Error('MySQL backend servisine bağlanılamıyor. Lütfen backend\'in çalıştığından emin olun.');
+          throw new Error('Unable to connect to the MySQL backend service. Please ensure the backend is running.');
         }
         
         const data = await unifiedDatabaseService.getAllDatabases();
@@ -111,7 +111,7 @@ export function MysqlDatabaseView({ onCreateNew }: MysqlDatabaseViewProps) {
         });
         setDatabases(sortedDatabases);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'MySQL veritabanları yüklenirken bir hata oluştu');
+        setError(err instanceof Error ? err.message : 'An error occurred while fetching MySQL databases');
         console.error('Error fetching MySQL databases:', err);
       } finally {
         setLoading(false);
