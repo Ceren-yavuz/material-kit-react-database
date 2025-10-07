@@ -179,8 +179,7 @@ class MinioService {
           query: `
             mutation DeleteMinio($input: DeleteMinioInput!) {
               DeleteMinio(input: $input) {
-                success
-                message
+                ids
               }
             }
           `,
@@ -198,7 +197,7 @@ class MinioService {
         throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
       }
 
-      return result.data?.DeleteMinio || { success: false, message: 'Unknown error' };
+      return result.data?.DeleteMinio || { ids: [] };
     } catch (error) {
       console.error('Error deleting MinIO storage:', error);
       throw error;

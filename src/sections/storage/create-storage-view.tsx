@@ -121,7 +121,7 @@ export function CreateStorageView() {
       const result = await minioService.createMinioStorage(createInput);
       
       if (result.minio) {
-        setSuccess(`MinIO storage creation initiated successfully! Storage UUID: ${result.minio.uuid}`);
+        setSuccess(`MinIO storage creation initiated successfully!`);
         setTimeout(() => {
           navigate('/storage');
         }, 2000);

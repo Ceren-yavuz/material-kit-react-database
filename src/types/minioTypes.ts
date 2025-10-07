@@ -33,9 +33,7 @@ export interface CreateMinioInput {
 
 export interface DeleteMinioInput {
   uuid: string;
-  remote_ip: string;
-  ssh_user: string;
-  ssh_password: string;
+  deletedBy: string;
 }
 
 export interface InstallPayload {
@@ -43,8 +41,7 @@ export interface InstallPayload {
 }
 
 export interface DeletePayload {
-  success: boolean;
-  message: string;
+  ids: string[];
 }
 
 // GraphQL Queries and Mutations
@@ -80,8 +77,7 @@ export const CREATE_MINIO_STORAGE = `
 export const DELETE_MINIO_STORAGE = `
   mutation DeleteMinio($input: DeleteMinioInput!) {
     DeleteMinio(input: $input) {
-      success
-      message
+      ids
     }
   }
 `;

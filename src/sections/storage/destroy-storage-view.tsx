@@ -39,17 +39,15 @@ export function DestroyStorageView({
 
       const deleteInput = {
         uuid: storage.uuid,
-        remote_ip: storage.remote_ip,
-        ssh_user: storage.ssh_user,
-        ssh_password: storage.ssh_password,
+        deletedBy: 'ahmet',
       };
 
       const result = await minioService.deleteMinioStorage(deleteInput);
       
-      if (result.success) {
+      if (result.ids && result.ids.length > 0) {
         onSuccess();
       } else {
-        setError(result.message || 'Storage destruction failed');
+        setError('Storage destruction failed');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while destroying storage');
@@ -84,9 +82,7 @@ export function DestroyStorageView({
           <Typography variant="subtitle2" color="text.secondary">
             Storage Details:
           </Typography>
-          <Typography variant="body2">
-            <strong>ID:</strong> {storage.uuid.slice(0, 8)}
-          </Typography>
+          
           <Typography variant="body2">
             <strong>Remote IP:</strong> {storage.remote_ip}
           </Typography>

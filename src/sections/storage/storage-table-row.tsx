@@ -4,7 +4,6 @@ import { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
-import Avatar from '@mui/material/Avatar';
 import Popover from '@mui/material/Popover';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
@@ -88,27 +87,13 @@ export function StorageTableRow({ row, selected, onSelectRow, onNotifyDestroy }:
     }
   };
 
-  const shortId = row.uuid.slice(0, 8);
+  // Identifier column removed; rely on explicit columns
 
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
         <TableCell padding="checkbox">
           <Checkbox disableRipple checked={selected} onChange={onSelectRow} />
-        </TableCell>
-
-        <TableCell component="th" scope="row">
-          <Box gap={2} display="flex" alignItems="center">
-            <Avatar alt={shortId} sx={{ bgcolor: 'primary.main' }}>
-              {shortId.slice(0, 2).toUpperCase()}
-            </Avatar>
-            <Box>
-              <div style={{ fontWeight: 600 }}>{shortId}</div>
-              <div style={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-                {row.uuid}
-              </div>
-            </Box>
-          </Box>
         </TableCell>
 
         <TableCell>

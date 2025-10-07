@@ -183,11 +183,11 @@ export function MinioStorageView() {
                   onSelectAllRows={(checked) =>
                     table.onSelectAllRows(
                       checked,
-                      storages.map((storage) => storage.uuid)
+                      storages.map((storage) => storage.remote_ip)
                     )
                   }
                   headLabel={[
-                    { id: 'uuid', label: 'Storage ID' },
+                    //{ id: 'uuid', label: 'Storage ID' },
                     { id: 'type', label: 'Type' },
                     { id: 'remote_ip', label: 'Remote IP' },
                     { id: 'ssh_user', label: 'SSH User' },
@@ -207,10 +207,10 @@ export function MinioStorageView() {
                     )
                     .map((storage) => (
                       <StorageTableRow
-                        key={storage.uuid}
+                        key={storage.remote_ip}
                         row={storage}
-                        selected={table.selected.includes(storage.uuid)}
-                        onSelectRow={() => table.onSelectRow(storage.uuid)}
+                        selected={table.selected.includes(storage.remote_ip)}
+                        onSelectRow={() => table.onSelectRow(storage.remote_ip)}
                         onNotifyDestroy={handleNotifyDestroy}
                       />
                     ))}
