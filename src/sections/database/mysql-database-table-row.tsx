@@ -60,11 +60,12 @@ type MysqlDatabaseTableRowProps = {
     try {
       await mysqlService.removeMysqlOperation({ uuid: row.uuid });
       setSuccess(true);
+      setOpenConfirmDialog(false); // Dialog'u başarılı durumda kapat
     } catch (err) {
       setError('Silme işlemi başarısız oldu');
+      setOpenConfirmDialog(false); // Dialog'u hata durumunda da kapat
     } finally {
       setLoading(false);
-      setOpenConfirmDialog(false);
     }
   };
 

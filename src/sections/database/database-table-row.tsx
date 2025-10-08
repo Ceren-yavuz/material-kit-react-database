@@ -80,11 +80,12 @@ export function DatabaseTableRow({ row, selected, onSelectRow, onNotifyDestroy }
       }
       
       setSuccess(true);
+      setOpenConfirmDialog(false); // Dialog'u başarılı durumda kapat
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Database could not be destroyed');
+      setOpenConfirmDialog(false); // Dialog'u hata durumunda da kapat
     } finally {
       setLoading(false);
-      setOpenConfirmDialog(false);
     }
   };
 

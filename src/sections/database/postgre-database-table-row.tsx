@@ -62,12 +62,13 @@ export function PostgreDatabaseTableRow({ row, selected, onSelectRow, onNotifyDe
       await postgresService.removePostgreOperation({ uuid: row.uuid });
       console.log('PostgreSQL: Delete operation successful');
       setSuccess(true);
+      setOpenConfirmDialog(false); // Dialog'u başarılı durumda kapat
     } catch (err) {
       console.error('PostgreSQL: Delete operation failed:', err);
       setError(err instanceof Error ? err.message : 'Silme işlemi başarısız oldu');
+      setOpenConfirmDialog(false); // Dialog'u hata durumunda da kapat
     } finally {
       setLoading(false);
-      setOpenConfirmDialog(false);
     }
   };
 
