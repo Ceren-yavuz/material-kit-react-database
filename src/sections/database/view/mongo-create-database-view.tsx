@@ -40,7 +40,7 @@ export function CreateMongoDatabaseView() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!mongoEdition || !mongoVersion || !password || !remoteUser || !remoteIp) {
-      setError('Lütfen tüm alanları doldurun');
+      setError('Please complete all fields');
       return;
     }
     try {
@@ -59,7 +59,7 @@ export function CreateMongoDatabaseView() {
         navigate('/database');
       }, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Veritabanı oluşturulurken bir hata oluştu');
+      setError(err instanceof Error ? err.message : 'An error occurred while creating the database');
       console.error('Error creating database:', err);
     } finally {
       setLoading(false);
@@ -70,7 +70,7 @@ export function CreateMongoDatabaseView() {
     <>
       {success && (
         <Alert severity="success" sx={{ mb: 3 }}>
-          MongoDB başarıyla oluşturuldu! Veritabanı listesine yönlendiriliyorsunuz...
+          MongoDB has been created successfully! You are being redirected to the database list...
         </Alert>
       )}
 

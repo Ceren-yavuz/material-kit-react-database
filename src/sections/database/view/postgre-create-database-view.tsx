@@ -43,7 +43,7 @@ export function CreatePostgreDatabaseView() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!remoteIp || !sshUser || !sshPassword || !dbVersion || !createdBy) {
-      setError('Lütfen tüm gerekli alanları doldurun');
+      setError('Please complete all required fields');
       return;
     }
     try {
@@ -69,7 +69,7 @@ export function CreatePostgreDatabaseView() {
       // Reset form
       resetForm();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Veritabanı oluşturulurken bir hata oluştu');
+      setError(err instanceof Error ? err.message : 'An error occurred while creating the database');
     } finally {
       setLoading(false);
     }
@@ -91,7 +91,7 @@ export function CreatePostgreDatabaseView() {
     <>
       {success && (
         <Alert severity="success" sx={{ mb: 3 }}>
-          PostgreSQL başarıyla oluşturuldu! Veritabanı listesine yönlendiriliyorsunuz...
+          PostgreSQL successfully created! You are being redirected to the database list...
         </Alert>
       )}
 

@@ -79,7 +79,7 @@ export function DatabaseView() {
 
       <Card>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={value} onChange={handleChange} aria-label="veritabanı türleri">
+          <Tabs value={value} onChange={handleChange} aria-label="database types">
             <Tab label="All Databases" {...a11yProps(0)} />
             <Tab label="MySQL" {...a11yProps(1)} />
             <Tab label="PostgreSQL" {...a11yProps(2)} />

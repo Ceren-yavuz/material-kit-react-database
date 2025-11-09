@@ -57,7 +57,7 @@ export function AllDatabaseView() {
         setConnectionStatus(status);
         
         if (!status.mongo && !status.postgres && !status.mysql) {
-          throw new Error('Hiçbir backend servisine bağlanılamıyor. Lütfen backend\'lerin çalıştığından emin olun.');
+          throw new Error('No backend services can be connected to. Please ensure that the backends are operational.');
         }
         
         const data = await unifiedDatabaseService.getAllDatabases();
@@ -69,7 +69,7 @@ export function AllDatabaseView() {
         });
         setDatabases(sortedDatabases);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Veritabanları yüklenirken bir hata oluştu');
+        setError(err instanceof Error ? err.message : 'An error occurred while loading databases');
         console.error('Error fetching databases:', err);
       } finally {
         setLoading(false);
@@ -90,7 +90,7 @@ export function AllDatabaseView() {
         setConnectionStatus(status);
         
         if (!status.mongo && !status.postgres && !status.mysql) {
-          throw new Error('Hiçbir backend servisine bağlanılamıyor. Lütfen backend\'lerin çalıştığından emin olun.');
+          throw new Error('No backend services can be connected to. Please ensure that the backends are operational.');
         }
         
         const data = await unifiedDatabaseService.getAllDatabases();
@@ -102,7 +102,7 @@ export function AllDatabaseView() {
         });
         setDatabases(sortedDatabases);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Veritabanları yüklenirken bir hata oluştu');
+        setError(err instanceof Error ? err.message : 'An error occurred while loading databases');
         console.error('Error fetching databases:', err);
       } finally {
         setLoading(false);

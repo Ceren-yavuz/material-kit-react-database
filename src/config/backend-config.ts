@@ -13,9 +13,9 @@ export const BACKEND_CONFIG = {
     enabled: true
   },
   minio: {
-    endpoint: 'http://localhost:3000/graphql', 
+    endpoint: 'http://localhost:3002/graphql', 
     name: 'MinIO Storage Service',
-    port: 3000,
+    port: 3002,
     enabled: true
   }
 };

@@ -54,7 +54,7 @@ export function PostgreDatabaseView() {
       setConnectionStatus({ postgres: connectionStatusResult.postgres });
       
       if (!connectionStatusResult.postgres) {
-        throw new Error('PostgreSQL backend servisine bağlanılamıyor. Lütfen backend\'in çalıştığından emin olun.');
+        throw new Error('Unable to connect to the PostgreSQL backend service. Please ensure the backend is running.');
       }
       
       const allDatabases = await unifiedDatabaseService.getAllDatabases();
@@ -68,7 +68,7 @@ export function PostgreDatabaseView() {
       console.log('PostgreSQL: Fetched databases:', sortedDatabases);
       setDatabases(sortedDatabases);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'PostgreSQL veritabanları yüklenirken bir hata oluştu');
+      setError(err instanceof Error ? err.message : 'An error occurred while fetching PostgreSQL databases');
       console.error('PostgreSQL: Error fetching databases:', err);
     } finally {
       setLoading(false);
@@ -84,7 +84,7 @@ export function PostgreDatabaseView() {
   }, []);
 
   const handleNotifyDestroy = useCallback(() => {
-    fetchDatabases(); // Destroy işleminden sonra listeyi yenile
+    fetchDatabases(); // Refresh the list after a destroy operation
   }, []);
 
   return (
